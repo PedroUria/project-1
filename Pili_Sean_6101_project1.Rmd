@@ -1,0 +1,52 @@
+---
+title: "DATS-6101 Project 1"
+author: "Sean Pili"
+date: "October 3, 2018"
+output: html_document
+---
+```{r}
+library(ggplot2)
+#import the data 
+chrn <- read_csv("C:/Users/seanp/Downloads/telco-customer-churn/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+str(chrn)
+x1 = as.factor(chrn$Partner)
+pap_plot = ggplot(data=chrn,aes(x=Churn))
+pap_plot + geom_bar(aes(fill=PaperlessBilling))
+# it seems that a most people who churn use paperless billing... interesting.. 
+Part_plot = ggplot(data=chrn,aes(x=Churn))
+Part_plot + geom_bar(aes(fill=Partner))
+# Are singles more likely to churn? looks that way...., or at least... most ppl with partners DIDN'T churn
+# might need to just look at percentages here, because there are just MORE PEOPLe WHO didn't churn.... so it's more of a p(churn|factor)
+x11()
+boxplot(tenure~Churn,data=chrn, main = "Spread of Tenure by customer_status",ylab="#Tenure with company in Months")
+
+ 
+# let' s do this for the rest of the character varaibles. 
+chrn_yes = chrn[chrn$Churn=="Yes",]
+chrn_no = chrn[chrn$Churn=="No",]
+hist(chrn_yes$tenure)
+hist(chrn_no$tenure)
+# the means are definitely different here..... 
+#let's try 2 histograms??? 
+# ANOVA time? logistic regression. 
+
+
+# the "yes" histogram was what we expected, the no, not quite. 
+# it seems people who have been there a while are the ones who end it 
+# could it be that they're just dying of old age? lol... check how many are senior citizens... 
+
+churn_rt = 5174/7043
+
+unique(chrn$Churn)
+
+dim(chrn)
+5174+1869
+
+```{r}
+
+```
+
+```{r}
+
+```
+
