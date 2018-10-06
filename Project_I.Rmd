@@ -1,0 +1,25 @@
+---
+title: "Project I"
+author: "Pedro Uria"
+date: "10/6/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r packages, message=FALSE}
+
+```
+
+## Data Preprocessing
+
+`unique()` to check the number of $\neq$ values.
+`gsub()` to replace some strings with "No".
+
+
+
+
