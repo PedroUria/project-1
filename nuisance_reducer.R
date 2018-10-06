@@ -16,7 +16,7 @@ package_apply_all <- function(list.of.packages, func) {
 
 # get_telco_data - function for retrieving data from Telco churn data csv file, and changing types appropriately
 get_telco_data <- function() {
-  package_apply_all(c('dplyr'), require)
+  package_apply_all(c('dplyr','readr'), require)
 
   # inspired by https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
   cols.factor.type <- c('gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines',
