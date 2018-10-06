@@ -1,0 +1,27 @@
+---
+title: "Telco_EDA"
+author: "zbuckley"
+date: "October 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("nuisance_reducer.R")
+```
+
+# Nuisance_Reducer
+
+Using the Nuisance Reducer script we can hide away useful utilities... like loading in a cleaned up data.frame of the telco data.
+
+# Load Telco DataFrame
+
+Load Telco Data into a DataFrame, and change a large number of the fields to factor variables
+```{r load} 
+#helper function in nuisance_reducer.R
+telco <- get_telco_data()
+```
+
+# Data Exploration
+
+
