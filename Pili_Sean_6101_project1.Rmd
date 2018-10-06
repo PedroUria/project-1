@@ -5,9 +5,10 @@ date: "October 3, 2018"
 output: html_document
 ---
 ```{r}
-library(ggplot2)
+source('nuisance_reducer.R')
+package_apply_all(c('ggplot2','readr'), require)
 #import the data 
-chrn <- read_csv("C:/Users/seanp/Downloads/telco-customer-churn/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+chrn <- read_csv("WA_Fn-UseC_-Telco-Customer-Churn.csv")
 str(chrn)
 x1 = as.factor(chrn$Partner)
 pap_plot = ggplot(data=chrn,aes(x=Churn))
