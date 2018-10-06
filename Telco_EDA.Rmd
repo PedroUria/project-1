@@ -17,11 +17,108 @@ Using the Nuisance Reducer script we can hide away useful utilities... like load
 # Load Telco DataFrame
 
 Load Telco Data into a DataFrame, and change a large number of the fields to factor variables
+
 ```{r load} 
 #helper function in nuisance_reducer.R
 telco <- get_telco_data()
 ```
 
 # Data Exploration
+
+Combining things into yes and no
+
+```{r add_agg}
+package_apply_all(c('dplyr'), require)
+
+unique(telco$StreamingMovies)
+unique(telco$StreamingTV)
+unique(telco$InternetService)
+
+telco$StreamingTV <- gsub(" internet service", "", telco$StreamingTV)
+telco$StreamingMovies <- gsub(" internet service", "", telco$StreamingMovies)
+telco$InternetService <- gsub("DSL", "Yes", telco$InternetService)
+telco$InternetService <- gsub("Fiber optic", "Yes", telco$InternetService)
+
+cols.factor.type <- c('StreamingTV', 'StreamingMovies','InternetService')
+
+telco <- telco %>%
+  mutate_each_(funs(factor), cols.factor.type)
+
+str(telco)
+```
+
+```{r }
+
+#TODO: Clean this up some... gotta be easier way
+cols.numeric.type <- c('StreamingTV', 'StreamingMovies','InternetService', 'PhoneService')
+
+counter <- function(row) {
+  cols <- c('StreamingTV', 'StreamingMovies','InternetService', 'PhoneService')
+  val <- 0
+  for (c in cols) {
+    if (telco[row, c] == "Yes") {
+      val <- val + 1
+    }
+  }
+  val
+}
+
+agg <- c()
+for (i in 1:nrow(telco)){
+  agg[i] = counter(i)
+}
+
+telco <- cbind(telco, agg)
+
+
+```
+
+##Chi-squared stuff
+
+```{r}
+package_apply_all(c('vcd'), require)
+
+thing <- chisq.test(telco$Churn,telco[['Contract']])
+str(thing)
+
+names <- names(Filter(is.factor, telco))
+names
+
+i <- 0
+results <- list()
+for (n in names) {
+  i <- i + 1
+  results[[i]] <- list(n, chisq.test(telco$Churn, telco[[n]]))
+ # print(n)
+  #print(results[[i]])
+}
+
+#print(results)
+
+
+printShit <- function(x) {
+  print(results[[x]][[1]])
+  print("observed")
+  print(results[[x]][[2]]$observed)
+  print("expected")
+  print(results[[x]][[2]]$expected)
+  print("residuals")
+  print(results[[x]][[2]]$residuals)
+  print("p.value")
+  print(results[[x]][[2]]$p.value)
+}
+
+#printShit(2)
+
+
+```
+
+#wtf
+
+Chi-Squared null hypothesis is no relationship between variables
+
+if p-value < .05 reject that and is a relationship between variables
+
+
 
 
