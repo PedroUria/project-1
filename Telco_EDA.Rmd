@@ -30,19 +30,16 @@ Combining things into yes and no
 ```{r add_agg}
 package_apply_all(c('dplyr'), require)
 
-unique(telco$StreamingMovies)
-unique(telco$StreamingTV)
-unique(telco$InternetService)
-
-telco$StreamingTV <- gsub(" internet service", "", telco$StreamingTV)
-telco$StreamingMovies <- gsub(" internet service", "", telco$StreamingMovies)
-telco$InternetService <- gsub("DSL", "Yes", telco$InternetService)
-telco$InternetService <- gsub("Fiber optic", "Yes", telco$InternetService)
-
-cols.factor.type <- c('StreamingTV', 'StreamingMovies','InternetService')
+cols.factor.type <- vars(StreamingTV, StreamingMovies, InternetService)
 
 telco <- telco %>%
-  mutate_each_(funs(factor), cols.factor.type)
+  mutate(
+    StreamingTV = gsub(" internet service", "", StreamingTV), # 'no internet service' should just be No
+    StreamingMovies = gsub(" internet service", "", StreamingMovies), # 'no internet service' should just be No
+    InternetService <- gsub("DSL", "Yes", InternetService), # DSL changed to Yes
+    InternetService <- gsub("Fiber optic", "Yes", InternetService) # Fiber changed to Yes
+  ) %>%
+  mutate_at(cols.factor.type, funs(factor)) # change cols we touched back to factors
 
 str(telco)
 ```
@@ -69,7 +66,6 @@ for (i in 1:nrow(telco)){
 }
 
 telco <- cbind(telco, agg)
-
 
 ```
 
