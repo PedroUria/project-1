@@ -30,43 +30,38 @@ Combining things into yes and no
 ```{r add_agg}
 package_apply_all(c('dplyr'), require)
 
+##list of cols that need to be converted back to factors after changes
 cols.factor.type <- vars(StreamingTV, StreamingMovies, InternetService)
+
+# TODO: Can this be generalized using ... undefined arguments thingy?
+count_services <- function(a,b,c,d) {
+  val <- 0
+  #TODO: had trouble turning this into loop... should take another look
+  if (a == "Yes") val <- val + 1
+  if (b == "Yes") val <- val + 1
+  if (c == "Yes") val <- val + 1
+  if (d == "Yes") val <- val + 1
+  val
+}
 
 telco <- telco %>%
   mutate(
     StreamingTV = gsub(" internet service", "", StreamingTV), # 'no internet service' should just be No
     StreamingMovies = gsub(" internet service", "", StreamingMovies), # 'no internet service' should just be No
-    InternetService <- gsub("DSL", "Yes", InternetService), # DSL changed to Yes
-    InternetService <- gsub("Fiber optic", "Yes", InternetService) # Fiber changed to Yes
+    InternetService = gsub("DSL", "Yes", InternetService), # DSL changed to Yes
+    InternetService = gsub("Fiber optic", "Yes", InternetService) # Fiber changed to Yes
   ) %>%
-  mutate_at(cols.factor.type, funs(factor)) # change cols we touched back to factors
+  mutate_at(
+    # change cols we touched back to factors
+    vars(StreamingTV, StreamingMovies, InternetService), 
+    funs(factor)
+  ) %>% rowwise() %>% 
+  mutate(
+    #add service_count column containing numbers of services each customer has
+    service_count = count_services(StreamingTV, StreamingMovies, InternetService, PhoneService)
+  )
 
 str(telco)
-```
-
-```{r }
-
-#TODO: Clean this up some... gotta be easier way
-cols.numeric.type <- c('StreamingTV', 'StreamingMovies','InternetService', 'PhoneService')
-
-counter <- function(row) {
-  cols <- c('StreamingTV', 'StreamingMovies','InternetService', 'PhoneService')
-  val <- 0
-  for (c in cols) {
-    if (telco[row, c] == "Yes") {
-      val <- val + 1
-    }
-  }
-  val
-}
-
-agg <- c()
-for (i in 1:nrow(telco)){
-  agg[i] = counter(i)
-}
-
-telco <- cbind(telco, agg)
-
 ```
 
 ##Chi-squared stuff
