@@ -3,7 +3,7 @@
 #  ex: install_all(c('readr', 'dplyr'))
 install_all <- function(list.of.packages) {
   need_install <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-  if(length(need_install)) install.packages(new.packages)
+  if(length(need_install)) install.packages(need_install)
 }
 
 # package_apply_all - function for calling install_all on list of packages, then applying a function to them
