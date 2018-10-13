@@ -4,6 +4,27 @@ author: "Sean Pili"
 date: "October 3, 2018"
 output: html_document
 ---
+
+# Plan
+
+##First 
+
+* $\chi^2$ test for each variable to get the relevant ones.
+* New variables with combination/permutations for the `InternetService`, `StreamingTv`, `StreamingMovies`
+
+[Source](https://stackoverflow.com/questions/11936339/replace-specific-characters-within-strings) 
+```{r data prep}
+unique(chrn$StreamingTV)
+chrn$StreamingTV <- gsub("No internet service", 0, chrn$StreamingTV)
+unique(chrn$StreamingTV)
+```
+
+```{r}
+for(c in chrn$SeniorCitizen){
+  
+}
+```
+
 ```{r}
 source('nuisance_reducer.R')
 package_apply_all(c('ggplot2','readr'), require)
@@ -43,11 +64,30 @@ unique(chrn$Churn)
 dim(chrn)
 5174+1869
 
-```{r}
-
 ```
 
-```{r}
+```{r more plots}
+sex_plot = ggplot(data=chrn,aes(x=Churn))
+sex_plot + geom_bar(aes(fill=gender))
 
+chrn$SeniorCitizen <- as.factor(chrn$SeniorCitizen)
+senior_plot = ggplot(data=chrn,aes(x=Churn))
+senior_plot + geom_bar(aes(fill=SeniorCitizen))
+
+contract_plot = ggplot(data=chrn,aes(x=Churn))
+contract_plot + geom_bar(aes(fill=Contract))
+
+dependents_plot = ggplot(data=chrn,aes(x=Churn))
+dependents_plot + geom_bar(aes(fill=Dependents))
+
+phone_service_plot = ggplot(data=chrn,aes(x=Churn))
+phone_service_plot + geom_bar(aes(fill=PhoneService))
+
+
+internet_service_plot = ggplot(data=chrn,aes(x=Churn))
+internet_service_plot + geom_bar(aes(fill=InternetService))
+
+online_security_plot = ggplot(data=chrn,aes(x=Churn))
+online_security_plot + geom_bar(aes(fill=OnlineSecurity))
 ```
 

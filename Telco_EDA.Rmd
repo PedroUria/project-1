@@ -110,6 +110,9 @@ printShit <- function(x) {
   print(results[[x]][[2]]$residuals)
   print("p.value")
   print(results[[x]][[2]]$p.value)
+  # Added a print for the Chi-squared statistic
+  print("Chi-Squared")
+  print(results[[x]][[2]]$statistic)
 }
 
 #printShit(2)
@@ -123,6 +126,132 @@ Chi-Squared null hypothesis is no relationship between variables
 
 if p-value < .05 reject that and is a relationship between variables
 
+## $\chi^$ for each variable against `Churn`
 
+```{r gender}
+printShit(1)
+```
+
+With a very high *P-value*, we fail to reject the null hypothesis and say that the evidence is not statistically significant to conclude that there exists a relationship between `churn` and `gender`. The observed and expected values are also very close, as one can see from the tables. We already saw this during the EDA (see the other file: "Pili_Sean_6101_project1.Rmd"), but it's good to have some formal confirmation.
+
+# TODO: I guess we should post the plots here and comment on them? 
+
+```{r elderly}
+printShit(2)
+```
+
+Now our *P-value* is very small, so we can say that `Churn` is statistically related to `SeniorCitizien`. 
+
+# TODO: What are the residuals in this table?
+
+```{r Partner}
+printShit(3)
+```
+
+The difference between observed and expected is also significant in this case. However, if you look at the plot, it's not really that big (line 39 on "Pili_Sean_6101_project1.Rmd"). To tell how small or big it is, we should look at the $chi^2$-statistic. I modified the shitty function xD to return that too. EDIT: the difference is bigger than it looks because the proportion actually flips around!!
+
+Now if we look at the Chi-squared for elderly and partner, we see that... they are almost the same??? 
+
+Let's try to understand this better...
+
+```{r change % comparison}
+elderly_observed = results[[2]][[2]]$observed
+partner_observed = results[[3]][[2]]$observed
+elderly_change = (elderly_observed[[1]]/elderly_observed[[3]]
+                  - elderly_observed[[2]]/elderly_observed[[4]])/(elderly_observed[[2]]/elderly_observed[[4]])*100
+partner_change = (partner_observed[[1]]/partner_observed[[3]]
+                  - partner_observed[[2]]/partner_observed[[4]])/(partner_observed[[2]]/partner_observed[[4]])*100
+elderly_change
+partner_change
+```
+
+the above chunk computes the percentage change on the proportion of the binary options for both `SeniorCitizien` and `Partner`, between the people who churned and the people who didn't. We can see that the ratio of young people to elder people increases `elderly_change` % for the churning group. In the case of partners, the ratio of people who don't have partners to the people who do is a `partner_change` % lower on the churning group.
+
+So $2.31 \cdot 0.5 = 1.155$ is not THAT far from $1$ (what the equality of the two $\chi^2$-statistics suggest, i.e, the % change should be almost the same in absolute terms), but it still seems further than it should be given the $\chi^2$s. **I'm left to wonder if we should compute the proportions first and make our $\chi^2$-tests on those proportions**. This way we would eliminate one variable from the table and perhaps decrease variability in our results?  
+
+```{r Dependents}
+printShit(4)
+```
+
+```{r PhoneService}
+printShit(5)
+```
+
+It seems we can also rule out phone service. Most of the customers do have phone service. 
+
+```{r MultipleLines}
+printShit(6)
+```
+
+This one is pretty close to not being significant at $\alpha = 0.05$. 
+
+```{r .}
+printShit(7)
+```
+
+Well this is a big deal :O. 
+
+```{r .}
+printShit(8)
+```
+
+This even more??? Yeah it kinda makes sense.
+
+```{r .}
+printShit(9)
+```
+
+Again makes sense. 
+
+```{r .}
+printShit(10)
+```
+
+```{r .}
+printShit(11)
+```
+
+These special services seem like a big deal.
+
+```{r .}
+printShit(12)
+```
+
+Here the $\chi^2$ is very small compared to the previous ones, but still statistically significant. I think it makes sense that the special services are such a big deal, because you wouldn't get them if you didn't plan to stay. 
+
+```{r .}
+printShit(13)
+```
+
+Very similar to `StreamingTV`, of course.
+
+```{r .}
+printShit(14)
+```
+
+Wow this is the most significant one yet! As Sean already mentioned, it's totally logical.
+
+```{r .}
+printShit(15)
+```
+
+```{r .}
+printShit(16)
+```
+
+Also makes sense.
+
+```{r MultipleLines}
+printShit(17)
+```
+
+lol.
+
+### Coments on this
+
+1. So what do you think about comparing the $\chi^2$-statistics to get a feeling of which one is more significantly related to churn? This way we could write a simple loop and order the features on descending significant order. 
+2. Also, what about doing the test on the proportions (at least on the binary ones) instead on each type separatedly? 
+3. I'm wondering about what the test is returning under `residuals`, because it's not de difference between `expected` and `observed`.
+4. I guess we should write a function that returns the plots on the "Pili_Sean_6101_project1.Rmd" file. 
 
 
