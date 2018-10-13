@@ -19,10 +19,8 @@ get_telco_data <- function() {
   package_apply_all(c('dplyr','readr'), require)
 
   # inspired by https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
-  cols.factor.type <- c('gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines',
-                        'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport',
-                        'StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','Churn')
+  # updated based on https://gist.github.com/ramhiser/93fe37be439c480dc26c4bed8aab03dd#file-character2factor-r-L8 
  
   read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv') %>%
-  mutate_each_(funs(factor), cols.factor.type)
+    mutate_if(sapply(., is.character), as.factor)
 }

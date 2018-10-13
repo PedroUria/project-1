@@ -7,33 +7,39 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-source("nuisance_reducer.R")
+
+##Helper Functions here for cleanly handling imports
+#install_all - function for installing all packages in a list that aren't available
+#  inspired by https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#  ex: install_all(c('readr', 'dplyr'))
+install_all <- function(list.of.packages) {
+  need_install <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  if(length(need_install)) install.packages(need_install)
+}
+
+# package_apply_all - function for calling install_all on list of packages, then applying a function to them
+#  inspired by https://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+#  ex: package_apply_all(c('readr', 'dplyr'), require)
+package_apply_all <- function(list.of.packages, func) {
+  install_all(list.of.packages)
+  lapply(list.of.packages, func, character.only = TRUE)
+}
 ```
 
 # Nuisance_Reducer
 
 Using the Nuisance Reducer script we can hide away useful utilities... like loading in a cleaned up data.frame of the telco data.
 
-# Load Telco DataFrame
-
-Load Telco Data into a DataFrame, and change a large number of the fields to factor variables
-
-```{r load} 
-#helper function in nuisance_reducer.R
-telco <- get_telco_data()
-```
 
 # Data Exploration
 
 Combining things into yes and no
 
 ```{r add_agg}
-package_apply_all(c('dplyr'), require)
-
-##list of cols that need to be converted back to factors after changes
-cols.factor.type <- vars(StreamingTV, StreamingMovies, InternetService)
+package_apply_all(c('readr','dplyr'), require)
 
 # TODO: Can this be generalized using ... undefined arguments thingy?
+# Inspired by r and dplyr documentation...
 count_services <- function(a,b,c,d) {
   val <- 0
   #TODO: had trouble turning this into loop... should take another look
@@ -44,19 +50,26 @@ count_services <- function(a,b,c,d) {
   val
 }
 
-telco <- telco %>%
+# 1) Read in data and convert all character columns to factors
+# 2) Mutate some factor columns into Yes/No for later analysis
+#    - this changes type back to character
+# 3) Mutate all character columns to factors
+# 4) add service_count column including number of services available
+#
+# Implementation Inspired by:
+#   https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
+#   https://gist.github.com/ramhiser/93fe37be439c480dc26c4bed8aab03dd#file-character2factor-r-L8 
+telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv') %>%
+  mutate_if(sapply(., is.character), as.factor) %>%
+  #TODO do we have a reference to this ??? Pedro any idea where you found this?
   mutate(
     StreamingTV = gsub(" internet service", "", StreamingTV), # 'no internet service' should just be No
     StreamingMovies = gsub(" internet service", "", StreamingMovies), # 'no internet service' should just be No
     InternetService = gsub("DSL", "Yes", InternetService), # DSL changed to Yes
     InternetService = gsub("Fiber optic", "Yes", InternetService) # Fiber changed to Yes
   ) %>%
-  mutate_at(
-    # change cols we touched back to factors
-    vars(StreamingTV, StreamingMovies, InternetService), 
-    funs(factor)
-  ) %>% rowwise() %>% 
-  mutate(
+  mutate_if(sapply(., is.character), as.factor) %>% 
+  rowwise() %>% mutate(
     #add service_count column containing numbers of services each customer has
     service_count = count_services(StreamingTV, StreamingMovies, InternetService, PhoneService)
   )
