@@ -41,7 +41,7 @@ Combining things into yes and no
 package_apply_all(c('readr','dplyr'), require)
 
 # Inspired by r and dplyr documentation initially
-#   updated by: 
+#   updated based on: https://www.quora.com/What-is-the-R-equivalent-of-Pythons-**kwargs
 count_services <- function(...) {
   val <- 0
   elems <- list(...)
