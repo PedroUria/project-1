@@ -1,0 +1,149 @@
+---
+title: "project1"
+author: "zbuckley, pedrouria, seanpili"
+date: "October 13, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+##Helper Functions here for cleanly handling imports
+#install_all - function for installing all packages in a list that aren't available
+#  inspired by https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#  ex: install_all(c('readr', 'dplyr'))
+install_all <- function(list.of.packages) {
+  need_install <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  if(length(need_install)) install.packages(need_install)
+}
+
+# package_apply_all - function for calling install_all on list of packages, then applying a function to them
+#  inspired by https://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+#  ex: package_apply_all(c('readr', 'dplyr'), require)
+package_apply_all <- function(list.of.packages, func) {
+  install_all(list.of.packages)
+  lapply(list.of.packages, func, character.only = TRUE)
+}
+```
+
+# Load in Data from Telco
+
+```{r initial_data_load}
+#TODO: Figure out how to supress nonsense output here
+package_apply_all(c('dplyr', 'readr', 'psych', 'ggplot2'), require)
+
+#TODO: Figure out how to supress nonsense output here
+telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv') %>%
+  mutate_if(sapply(., is.character), as.factor) %>%
+  mutate(
+    SeniorCitizen = factor(SeniorCitizen, labels = c('No', 'Yes')),
+    customerID = as.character(customerID)
+  )
+
+str(telco)
+```
+
+# Research Question
+
+Are people with the monthly contract type more likely to terminate their consumption of services from Telco based on the Telco dataset available?
+
+More:
+TODO: Yes but what... write here as we come up with them...  
+
+## Null/Alternative Hypothesis(es?)
+
+
+# Conducting Exploratory Data Analysis
+
+> a. Conduct Exploratory Data Analysis that will begin to answer your question, this
+> can include for example:
+
+## Summary and Descriptive Statistics
+
+> i. Summary of the dataset/Descriptive Statistics
+> ii. Graphical representations of the data
+
+### Descriptive Statistics and Graphical Representations - Numerical Data
+
+
+```{r}
+#TODO: dplyr-ize this
+nums <- unlist(lapply(telco, is.numeric))
+telcon <- telco[ , nums]
+describe(telcon)
+```
+
+#### Tenure
+
+Worth noting that the tenure data's average is ~32 months, but with a standard deviation of ~24 months. This amount of variability probably explains why the company is interested in getting a better understanding of their customer churn.
+
+```{r}
+#TODO bins of size to match next plot
+hist(telco$tenure)
+```
+
+This is clearly not normal. it appears that a large number of new customers have appeared over the last 5 months, or that a large number of...
+
+The histogram of the tenure data seems to indicate a large amount of newer customers relative to the number of customers that have long-running accounts. But it's hard to say if this is a recent trend or caused by the ongoing churn that the company is interesting in predicting. 
+
+```{r}
+#TODO: so cool. lets see if we can flip it.
+ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
+```
+
+The tenure histogram showing Churn Yes/No vs. the amount of tenure a customer has, shows the trend we pretty much expected. We can see that a core of long-term customers seems to stick around..... 
+TODO: More here
+Important: Are we looking at stacked bars or total frequencies (from sean).. after discussion. pretty sure it is stacked.
+Dumber Note: This is not total custermers 40 months ago.... total customers at month 0 is sum of all customers that haven't churned.... careful when writing this up.
+
+#### Monthly Charges
+
+```{r}
+hist(telco$MonthlyCharges)
+boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
+# this was funny... but no
+#ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn))
+```
+
+This seems to show a general trend of Customers paying more, being more likely to Churn, though there is a lot of variation in MonthlyCharges for Customers that didn't churn, so it may not be a very statistically relevant trend....... 
+TODO: More here
+
+#### Total Charges
+
+```{r}
+hist(telco$TotalCharges)
+```
+
+The histogram of total charges seems to makes sense against the trend we saw before with tenure that indicates the majority of the customers we have in the database recently started with the company (~ <5 months tenure).
+
+```{r}
+# this was funny... but no
+boxplot(TotalCharges~Churn, data=telco, xlab='Churn', ylab='Total Charges($)', main='Total Charges by Churn')
+```
+
+Appears that people who have Churned has spend a little bit less overall, however we did expect a bigger difference in overall spending.
+
+### Descriptive Statistics and Graphical Representations - Categorical Data
+
+```{r}
+factors <- unlist(lapply(telco, is.factor))
+table(telco$Churn)
+```
+
+TODOS:
+ - Table/Graphics for remaining categorical data
+ 
+> iii. Measures of Variance
+
+# TODO: may be above... look at summary stats from boxplot stuff above... 
+
+> iv. Initial correlation
+
+# TODO: only applies to numberic data (between total/monthly/tenure)
+# TODO: build corrplot and discuss
+
+> b. Select and develop an appropriate model (Chi-square/ANOVA/Regression) to
+> address your research question allowing you to either accept or reject the null
+> hypothesis. This should include, as appropriate, model evaluation techniques. 
+
+#TODO run chi-squared as appropriate for research question. 
