@@ -1,3 +1,9 @@
 *.Rproj
 .R*
 *.DS_Store
+*paper/project1.aux
+*paper/project1.fff
+*paper/project1.log
+*paper/project1.pdf
+*paper/project1.synctex.gz
+*paper/project1.ttt
