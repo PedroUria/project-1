@@ -2,7 +2,9 @@
 title: "Telco_EDA"
 author: "zbuckley"
 date: "October 5, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -126,7 +128,7 @@ Chi-Squared null hypothesis is no relationship between variables
 
 if p-value < .05 reject that and is a relationship between variables
 
-## $\chi^$ for each variable against `Churn`
+## Chi-Squared for each variable against `Churn`
 
 ```{r gender}
 printShit(1)
@@ -185,63 +187,63 @@ printShit(6)
 
 This one is pretty close to not being significant at $\alpha = 0.05$. 
 
-```{r .}
+```{r}
 printShit(7)
 ```
 
 Well this is a big deal :O. 
 
-```{r .}
+```{r}
 printShit(8)
 ```
 
 This even more??? Yeah it kinda makes sense.
 
-```{r .}
+```{r}
 printShit(9)
 ```
 
 Again makes sense. 
 
-```{r .}
+```{r}
 printShit(10)
 ```
 
-```{r .}
+```{r}
 printShit(11)
 ```
 
 These special services seem like a big deal.
 
-```{r .}
+```{r}
 printShit(12)
 ```
 
 Here the $\chi^2$ is very small compared to the previous ones, but still statistically significant. I think it makes sense that the special services are such a big deal, because you wouldn't get them if you didn't plan to stay. 
 
-```{r .}
+```{r}
 printShit(13)
 ```
 
 Very similar to `StreamingTV`, of course.
 
-```{r .}
+```{r}
 printShit(14)
 ```
 
 Wow this is the most significant one yet! As Sean already mentioned, it's totally logical.
 
-```{r .}
+```{r}
 printShit(15)
 ```
 
-```{r .}
+```{r}
 printShit(16)
 ```
 
 Also makes sense.
 
-```{r MultipleLines}
+```{r}
 printShit(17)
 ```
 
