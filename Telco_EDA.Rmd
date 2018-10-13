@@ -61,9 +61,9 @@ count_services <- function(a,b,c,d) {
 # Implementation Inspired by:
 #   https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
 #   https://gist.github.com/ramhiser/93fe37be439c480dc26c4bed8aab03dd#file-character2factor-r-L8 
+# https://stackoverflow.com/questions/11936339/replace-specific-characters-within-strings
 telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv') %>%
   mutate_if(sapply(., is.character), as.factor) %>%
-  #TODO do we have a reference to this ??? Pedro any idea where you found this?
   mutate(
     StreamingTV = gsub(" internet service", "", StreamingTV), # 'no internet service' should just be No
     StreamingMovies = gsub(" internet service", "", StreamingMovies), # 'no internet service' should just be No
@@ -88,7 +88,8 @@ thing <- chisq.test(telco$Churn,telco[['Contract']])
 str(thing)
 
 names <- names(Filter(is.factor, telco))
-names
+# The bug was because the first element of names was "customerID"
+names <- names[2:length(names)]
 
 i <- 0
 results <- list()
