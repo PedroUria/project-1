@@ -40,15 +40,14 @@ Combining things into yes and no
 ```{r add_agg}
 package_apply_all(c('readr','dplyr'), require)
 
-# TODO: Can this be generalized using ... undefined arguments thingy?
-# Inspired by r and dplyr documentation...
-count_services <- function(a,b,c,d) {
+# Inspired by r and dplyr documentation initially
+#   updated by: 
+count_services <- function(...) {
   val <- 0
-  #TODO: had trouble turning this into loop... should take another look
-  if (a == "Yes") val <- val + 1
-  if (b == "Yes") val <- val + 1
-  if (c == "Yes") val <- val + 1
-  if (d == "Yes") val <- val + 1
+  elems <- list(...)
+  for (elem in elems) {
+    if(elem == "Yes") val <- val + 1
+  }
   val
 }
 
