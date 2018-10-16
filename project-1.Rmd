@@ -32,8 +32,9 @@ package_apply_all <- function(list.of.packages, func) {
 #TODO: Figure out how to supress nonsense output here
 package_apply_all(c('dplyr', 'readr', 'psych', 'ggplot2'), require)
 
-#TODO: Figure out how to supress nonsense output here
-telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv') %>%
+#https://github.com/tidyverse/readr/issues/530
+telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
+                  col_types = cols()) %>%
   mutate_if(sapply(., is.character), as.factor) %>%
   mutate(
     SeniorCitizen = factor(SeniorCitizen, labels = c('No', 'Yes')),
