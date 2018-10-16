@@ -11,7 +11,7 @@ install_all <- function(list.of.packages) {
 #  ex: package_apply_all(c('readr', 'dplyr'), require)
 package_apply_all <- function(list.of.packages, func) {
   install_all(list.of.packages)
-  lapply(list.of.packages, func, character.only = TRUE)
+  invisible(lapply(list.of.packages, func, character.only = TRUE))
 }
 
 # get_telco_data - function for retrieving data from Telco churn data csv file, and changing types appropriately
