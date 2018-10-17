@@ -68,11 +68,13 @@ TODO: Yes but what... write here as we come up with them...
 
 
 ```{r}
-#TODO: dplyr-ize this
-nums <- unlist(lapply(telco, is.numeric))
-telcon <- telco[ , nums]
+telcon <- telco %>% 
+  select_if(
+    sapply(telco, is.numeric))
 describe(telcon)
 ```
+
+TODO: Notes/Thoughts/Comments here regarding describe output
 
 #### Tenure
 
