@@ -2,6 +2,8 @@
 .R*
 *.DS_Store
 
+paper/project1.pdf
+
 ## latex settings provided by:
 ##   https://github.com/github/gitignore/blob/master/TeX.gitignore
 ## Core latex/pdflatex auxiliary files:
