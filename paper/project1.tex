@@ -25,11 +25,17 @@
 \maketitle
 
 \section{Introduction and Background Research}
-\paragraph{Churn}
-TODO: Write-up on Importance of Churn
+\paragraph{Churn Rate}
+
+In business, churn rate is the percentage of a company's customers that terminate their relationship with that company. In the telecommunications industry, churn rates can be especially high because there is fierce competition and the market is saturated. In fact, in their study of factors that explain customer churn rates for an Indian telecommunications company  Asamoah et. al mention that "worldwide, the rate of customer churn in the telecom service industry ranges from 20 percent to 40 percent per year" (224) If a company loses 20-40 percent of its existing customer base every year, that can have a significant, negative, on effect on its revenue regardless how many new customers they obtain.  Consequently, many companies in saturated markets keep track of monthly, quarterly or yearly churn rates in an attempt to identify defining characteristics of customers who churn in order to predict and eventually reduce their customer churn rate. 
+
+Much of the scientific research on reducing customer churn across all industry verticals involves using logistic regression or classification methods to predict which customers will churn in a given period (typically monthly.) Common features used to classify which customers will churn across different industry verticals include different aspects of customer purchasing behavior, their tenure (the length of a customer's relationship with a company, their account charges,  and frequency of their transactions (depending on the type of business)  In 2015 Jarvis et al. ran an analysis on consumer data from an Australian streaming DVD rental service to determine if adding features that measure "customer satisfaction, attitude and commitment" to models meant to classify whether or not a customer will churn would increase their prediction accuracy.  Interestingly, Jarvis et. al. found that "The most significant predictor of churn in [customer purchasing habits, satisfaction and attitude] was a measure of uncertainty and commitment: the number of times a customer changed their subscription plan." Jarvis et. al did not explain how the customers changed their plans, (i.e. did the customers add or subtract services from their plans or alter other aspects of their plans entirely?)  
+
+
+
 
 \paragraph{Telco Dataset}
-The Telco Customer Churn Dataset we'll be using throughout this paper contains information about the customers from an unidentified telecommunications company. The data was uploaded to kaggle.com by a user named blastchar. \cite{blastchar_2018} The dataset originates from a sample dataset provided by IBM for exploring the capabilities of IBM's Watson Analytics services. IBM uses the data in a walkthrough of building a model for predicting whether a customer will leave the company, with the explicit goal of creating better customer retention programs. \cite{ibm_telco_2015} There are a number of sample data sets provided by IBM for similar walkthroughs related to their Watson Analytics system. \cite{ibm_data_2015} We were unable to determine conclusively if the Telco Dataset we're interested in for this paper was based on data from a real telecommunications company, or if the data was synthetically generated for the purposes of demostrating the watson analytics system's capabilities.
+The Telco Customer Churn Dataset we'll be using throughout this paper contains information about the customers from an unidentified telecommunications company. The data was uploaded to kaggle.com by a user named blastchar. \cite{blastchar_2018} The dataset originates from a sample dataset provided by IBM for exploring the capabilities of IBM's Watson Analytics services. IBM uses the data in a walkthrough of building a model for predicting whether a customer will leave the company, with the explicit goal of creating better customer retention programs. \cite{ibm_telco_2015} There are a number of sample data sets provided by IBM for similar walkthroughs related to their Watson Analytics system. \cite{ibm_data_2015} We were unable to determine conclusively if the Telco Dataset we're interested in for this paper was based on data from a real telecommunications company, or if the data was synthetically generated for the purposes of demonstrating the watson analytics system's capabilities.
 
 \section{Research Question, Hypotheses and Methods (variable explanations)}
 \paragraph{Research Question}
@@ -37,7 +43,7 @@ Are there significant relationships with the following variables and Churn:
 \begin{itemize}
 \item{Contract Type}
 \item{Paperless Billing}
-\item{Parner}
+\item{Partner}
 \item{Device Protection}
 \item{Tech Support}
 \item{Online Backup}
