@@ -69,25 +69,69 @@ dim(chrn)
 ```{r more plots}
 sex_plot = ggplot(data=chrn,aes(x=Churn))
 sex_plot + geom_bar(aes(fill=gender))
+# gender doesn't seem to play a role 
 
 chrn$SeniorCitizen <- as.factor(chrn$SeniorCitizen)
+
 senior_plot = ggplot(data=chrn,aes(x=Churn))
 senior_plot + geom_bar(aes(fill=SeniorCitizen))
+#it's not QUITE as extreme... 
+# you could, however make the case that it's interesting there are roughly the same number 
+# of senior citizens in the group of ppl who churned... v. who didn't, but there were a lot more non senior citizens in the group of ppl who stayed... maybe seniors are more likely to leave 
+table(chrn$SeniorCitizen)
+# we also just have a bunch more non-senior citizens...
+
 
 contract_plot = ggplot(data=chrn,aes(x=Churn))
 contract_plot + geom_bar(aes(fill=Contract))
+table(chrn_yes$Contract)
+
+
+table(chrn$Contract)[1]/nrow(chrn)
+#Overall, 55% of telco's current customers as of last month had month to month contracts
+# Making up 42% of the customers who didn't churn.... but a whopping 89% of the customers #who did churn... which appears to make sense. This will be part of our H0
+
+table(chrn_yes$Contract)[1]/nrow(chrn_yes)
+# so what we have learned HERE... is that people who have month to month contracts 
+# are make up 40% of the people in the 
+
+table(chrn_no$Contract)[1]/nrow(chrn_no)
+
 
 dependents_plot = ggplot(data=chrn,aes(x=Churn))
 dependents_plot + geom_bar(aes(fill=Dependents))
 
+# people with dependents
+# the relationship is a bit more pronounced with the people who churned... we COULD look at it 
+
+
+dependents_plot = ggplot(data=chrn,aes(x=Churn))
+dependents_plot + geom_bar(aes(fill=Dependents))
+
+
+
+
 phone_service_plot = ggplot(data=chrn,aes(x=Churn))
 phone_service_plot + geom_bar(aes(fill=PhoneService))
+# eh, not really worth it. 
+table(chrn_yes$PhoneService)[1]/nrow(chrn_yes)
+# percentages are hella close, no way.
+table(chrn_no$PhoneService)[1]/nrow(chrn_no)
+
 
 
 internet_service_plot = ggplot(data=chrn,aes(x=Churn))
 internet_service_plot + geom_bar(aes(fill=InternetService))
 
+
+# well HELLO there internet service..... 
+# it appears that customers with fiber optic internet service churned the most..... 
+# but it seems to be pretty evenly distributed for the customers who didn't churn... 
+
+
 online_security_plot = ggplot(data=chrn,aes(x=Churn))
 online_security_plot + geom_bar(aes(fill=OnlineSecurity))
+
+# yup, I was right, if they have internet security... they're more likely to churn. 
 ```
 
