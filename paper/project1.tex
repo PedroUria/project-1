@@ -1,24 +1,45 @@
-\documentclass[a4paper,man,english]{apa}
+\documentclass[man]{apa6}
+
+\usepackage{lipsum}
+
+\usepackage[american]{babel}
+
+\usepackage{csquotes}
+\usepackage[style=apa,sortcites=true,sorting=nyt,backend=biber]{biblatex}
+\DeclareLanguageMapping{american}{american-apa}
+\addbibresource{project1.bib}
+
+\title{Analysis of Customer Churn at Telco}
 
 \shorttitle{Customer Churn}
-\title{Customer Churn:\\Analysis of Patterns in Customer Churn at Telco}
-\threeauthors{Pedro Uria\\pedrouriar@gwu.edu}{Sean Pili\\seanpili@gwu.edu}{Zachary Buckley\\zbuckley@gwu.edu}
-\threeaffiliations{Data Science Department\\George Washington University}{Data Science Department\\George Washington University}{Data Science Department\\George Washington University}
+
+\author{Pedro Uria, Sean Pili, and Zachary Buckley}
+
+\affiliation{George Washington University}
 
 \abstract{
-TODO: Include an abstract?
+  TODO: This is the abstract.
 }
 
 \begin{document}
-  \maketitle
+\maketitle
 
-  \section{Introduction and Background Research}
-  
-  \section{Overview of the research question, hypotheses and methods (variable
-explanations)}
-  B
-  \section{Overview of the findings including EDA and model results}
-  C
-  \section{A discussion of what conclusions can be drawn as a result of your project.}
-  D
+\section{Introduction and Background Research}
+\paragraph{Origin}
+The Telco Customer Churn Dataset we'll be using throughout this paper contains information about the customers from an unidentified telecommunications company. The data was uploaded to kaggle.com by a user named blastchar. \cite{blastchar_2018} The dataset originates from a sample dataset provided by IBM for exploring the capabilities of IBM's Watson Analytics services. IBM uses the data in a walkthrough of building a model for predicting whether a customer will leave the company, with the explicit goal of creating better customer retention programs. \cite{ibm_telco_2015} There are a number of sample data sets provided by IBM for similar walkthroughs related to their Watson Analytics system. \cite{ibm_data_2015} We were unable to determine conclusively if the Telco Dataset we're interested in for this paper was based on data from a real telecommunications company, or if the data was synthetically generated for the purposes of demostrating the watson analytics system's capabilities.
+
+\paragraph{Other Research}
+
+
+\section{Research Question, Hypotheses and Methods (variable explanations)}
+\paragraph{Research Question}
+\paragraph{Hypothesis}
+\paragraph{Methods}
+\section{Overview of the findings including EDA and model results}
+
+\section{A discussion of what conclusions can be drawn as a result of your project.}
+D
+
+\newpage
+\printbibliography
 \end{document}
