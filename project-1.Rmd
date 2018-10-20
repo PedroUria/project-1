@@ -30,8 +30,14 @@ package_apply_all <- function(list.of.packages, func) {
 
 ```{r initial_data_load}
 #https://stackoverflow.com/questions/12984991/stop-lapply-from-printing-to-console
-package_apply_all(c('dplyr', 'readr', 'psych', 'ggplot2'), require)
+package_apply_all(c('dplyr', 'readr', 'psych', 'ggplot2','e1071'), require)
 
+
+# Senior Citizen is coded numerically (0,1), and indicates if someone is a senior citizen, 
+# so we switched it's type to factor
+
+# We decided to turn CustomerID into a character variable because there are too many 
+# levels to use this as a factor varaible
 #https://github.com/tidyverse/readr/issues/530
 telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
                   col_types = cols()) %>%
@@ -42,6 +48,12 @@ telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
   )
 
 str(telco)
+# Our Dataset has 21 Variables, or one independent varaible (Churn) and 20 independent variables.
+
+#Three of our variables are numeric and the other 18 of them are categorical. 
+
+
+
 ```
 
 # Research Question
@@ -72,9 +84,26 @@ telcon <- telco %>%
   select_if(
     sapply(telco, is.numeric))
 describe(telcon)
+
+
+plot(telco$tenure,telco$TotalCharges)
+summary(lm(TotalCharges~tenure,data=telco))
+2283.3/1397.47
+
 ```
 
 TODO: Notes/Thoughts/Comments here regarding describe output
+
+# Interestingly, all of our numeric variables have a rather large standard deviation compared to their respective means and ranges, especially for the Total Charges variable. 
+# additionally, the meean is roughly 1.6x larger than the median. 
+
+# This makes sense though, because customers have different numbers of services and not all of them pay for tech support or have a warranty, and the longer customers stay with the company, the bigger the differences will be in their total charges. 
+
+# Additionally, we beleive that the rather large standard deviation in Monthly charges is for a similar reason, there are so many combinations of services/warranties that customers can choose to consume. 
+
+# it also makes sense for there to be a rather high standard deviation for the tenure, 
+# because the number of people remaining with telco can only decrease, not increase, 
+# so it makes sense that the distribution is slightly right skewed.
 
 #### Tenure
 
@@ -82,30 +111,92 @@ Worth noting that the tenure data's average is ~32 months, but with a standard d
 
 ```{r}
 #TODO bins of size to match next plot
+ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
 hist(telco$tenure)
+# this means we CANNOT use anova, unfortunately. OUr groupmeans are not normal 
+#tenaov = aov(tenure~Churn,data = telco)
+leveneTest(y=telco$tenure,group=telco$Churn)
+
+summary(tenaov)
+qqnorm(telco$tenure)
+qqline(telco$tenure)
+cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
+  geom_boxplot()
+cten_box
+
+pap_plot = ggplot(data=chrn,aes(x=Churn))
+pap_plot + geom_bar(aes(fill=PaperlessBilling))
+
+contract_plot = ggplot(data=chrn,aes(x=Churn))
+contract_plot + geom_bar(aes(fill=Contract))
+table(chrn_yes$Contract)
+
+
+
 ```
 
-This is clearly not normal. it appears that a large number of new customers have appeared over the last 5 months, or that a large number of...
+Customer tenure for this month is clearly not normally distributed. It appears that relatively a large number of new customers have appeared over the last 5 months, but we have to rember that we have no data on customers who cancelled their service that joined any time in the last 5 years and 10 months.
+
+That is to say, the number of new customers telco signs every month may have been consistent over the last six years, but since we can only see 
+
+That being said, we expected the graph to show a negative linear pattern where the number of customers who have stayed with telco has steadily declined over the years... but that isn't the case. There are more customers that joined in the last 5 months than any other 5 month interval in the data, but it appears to level out after about 25 months and then rises again after 5 years. 
+
+
 
 The histogram of the tenure data seems to indicate a large amount of newer customers relative to the number of customers that have long-running accounts. But it's hard to say if this is a recent trend or caused by the ongoing churn that the company is interesting in predicting. 
 
 ```{r}
 #TODO: so cool. lets see if we can flip it.
 ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
+# try stacked v. not-stacked...
+ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn),position='dodge')
 ```
 
 The tenure histogram showing Churn Yes/No vs. the amount of tenure a customer has, shows the trend we pretty much expected. We can see that a core of long-term customers seems to stick around..... 
-TODO: More here
-Important: Are we looking at stacked bars or total frequencies (from sean).. after discussion. pretty sure it is stacked.
+
+It appears that most customers who churn do it early.
+
+The tiny bar represents customers who haven't been with the company for a full month yet, 
+we aren't sure why it's so much smaller than everything else. It makes sense that none of these customers have churned because they technically haven't been billed yet, this might be a hiccup in the data, maybe this analysis was done early in the month and they included 
+a handful of new contracts that month. 
+
+TODO: More here #### EDITED, I CHECKED IT OUT
+Important: Are we looking at stacked bars or total frequencies (from sean) It's stacked. :) 
 Dumber Note: This is not total custermers 40 months ago.... total customers at month 0 is sum of all customers that haven't churned.... careful when writing this up.
 
 #### Monthly Charges
 
 ```{r}
+
+### all we need to cahnge here is essentially label the plot 
+# we can't use anova bc of what I just showed here... 
 hist(telco$MonthlyCharges)
+# definitely not normal. 
 boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
 # this was funny... but no
-#ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn),position='dodge')
+hist(chrn_no$MonthlyCharges)
+# definitely skewed to the right. 
+hist(chrn_yes$MonthlyCharges)
+# what we learned is that the customers who ARE churning are definitely paying more $$
+
+# can we do anova here? I'd like too, but have to ask the dependent v. indpendent 
+# variable question, besides we have many more customers who have churned. 
+# which means... 
+qqnorm(telco$MonthlyCharges)
+qqline(telco$MonthlyCharges)
+
+
+
+
+# this means we CANNOT use anova, unfortunately. OUr groupmeans are not normal 
+moncaov = aov(MonthlyCharges~Churn,data = telco)
+leveneTest(moncaov)
+
+
+charge_box<-ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
+  geom_boxplot()
+charge_box
 ```
 
 This seems to show a general trend of Customers paying more, being more likely to Churn, though there is a lot of variation in MonthlyCharges for Customers that didn't churn, so it may not be a very statistically relevant trend....... 
@@ -114,27 +205,53 @@ TODO: More here
 #### Total Charges
 
 ```{r}
+# we can really only look at either monthly charges or total charges when trying to 
+# predict Churn, and well... we can't really use one to predict the other bc they are 
+# DEFINITELY correlated. 
+
+# we might as well just use 
 hist(telco$TotalCharges)
+plot(telco$TotalCharges,telco$tenure)
+# everyone who is staying longer is going to generally have higher charges 
+# simply bc they are charged MORE times..... 
+
+# interestingly, these are closer than we expected, unfortunately we can't run a t-test because our numeric data isn't normal. 
+tcharge_box<-ggplot(telco, aes(x=Churn, y=TotalCharges, color=Churn)) +
+  geom_boxplot()
+tcharge_box
+
+ggplot(data=telco)+geom_histogram(aes(x=TotalCharges, fill=Churn))
+# distribution isn't EXACTLY the same... customers who do churn does have a bit more of an extreme dropoff... but it's similar. 
+ggplot(data=chrn_yes)+geom_histogram(aes(x=TotalCharges),fill='blue')+geom_text()
+
+ggplot(data=chrn_no)+geom_histogram(aes(x=TotalCharges),fill='red') 
+
+
 ```
 
-The histogram of total charges seems to makes sense against the trend we saw before with tenure that indicates the majority of the customers we have in the database recently started with the company (~ <5 months tenure).
+NOT GONNA DELETE THIS BELOW,  BUT NOW THAT WE HAVE THE HISTOGRAMs BROKEN BY CHURN WHICH SHOWS ESSENTIALLY THE SAME DISTRIBUTION FOR BOTH VALUES..... I'M COMMENTING IT OUT AND REPLACING IT WITH THIS. 
 
-```{r}
-# this was funny... but no
-boxplot(TotalCharges~Churn, data=telco, xlab='Churn', ylab='Total Charges($)', main='Total Charges by Churn')
-```
+The distributions aren't identical, but they are similar. (They are both skewed right but it's more skewed right for customers who churned)
+#The histogram of total charges seems to makes sense against the trend we saw before with tenure that indicates the majority of the customers we have in the database recently started with the company (~ <5 months tenure). 
 
 Appears that people who have Churned has spend a little bit less overall, however we did expect a bigger difference in overall spending.
 
 ### Descriptive Statistics and Graphical Representations - Categorical Data
 
 ```{r}
+
 factors <- unlist(lapply(telco, is.factor))
 table(telco$Churn)
+table(telco$Churn)[2]/table(telco$Churn)[1]
 ```
 
+The Churn Rate is 36.122 %
+Also, note we decided not to 
 TODOS:
  - Table/Graphics for remaining categorical data
+```{r}
+# ask brian if I should list the realtive frequencies of everything and talk about them in the report? seems kind of agains the point 
+```
  
 > iii. Measures of Variance
 
@@ -150,3 +267,47 @@ TODOS:
 > hypothesis. This should include, as appropriate, model evaluation techniques. 
 
 #TODO run chi-squared as appropriate for research question. 
+
+```{r}
+
+  yr = telco[which(telco$Contract=="One year"|telco$Contract=="Two year"),]
+  yrc = yr[yr$Churn == "Yes",]
+  unique(yrc$tenure)
+  hist(yrc$tenure)
+  dim(yrc)
+  
+  
+  monthly = telco[which(telco$Contract!="One year"&telco$Contract!="Two year"),]
+  unique(monthly$Contract)
+  unique(monthly$tenure)
+  
+  hist(monthly$tenure)
+  hist(monthly$MonthlyCharges)
+  shapiro.test(monthly$tenure)
+  
+  
+  # add in our spanking new dataset. 
+  
+  hist(churn$accountlength)
+  shapiro.test(churn$accountlength)
+  qqnorm(churn$accountlength)
+  qqline(churn$accountlength)
+  #ks.test(churn$accountlength)
+  install.packages('nortest')
+  library(nortest)
+  ad.test(churn$accountlength)
+  hist(churn$numbercustomerservicecalls)
+  ad.test(churn$numbercustomerservicecalls)
+  ad.test(churn$totaldaycharge)
+  ad.test(churn$totaldayminutes)
+  hist(churn$totaldaycharge)
+  hist(churn$totaldayminutes)
+  summary(aov(accountlength~churn,data=churn))
+  library(car)
+  hist(churn$totaldaycharge)
+  
+  qqnorm(churn$totaldaycharge)
+  leveneTest(aov(accountlength~churn,data=churn))
+    leveneTest(aov(totaldaycharge~churn,data=churn))
+```
+
