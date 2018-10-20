@@ -24,52 +24,47 @@ package_apply_all <- function(list.of.packages, func) {
   install_all(list.of.packages)
   invisible(lapply(list.of.packages, func, character.only = TRUE))
 }
-
-#resolve dependencies required for the document to run
-#https://stackoverflow.com/questions/12984991/stop-lapply-from-printing-to-console
-package_apply_all(c('dplyr', 'readr','ggplot2'), require)
 ```
 
-# Load Data Telco
-
-The following code will load in the Telco Dataset, and setup the variable types appropriately. 
+# Load in Data from Telco
 
 ```{r initial_data_load}
+#https://stackoverflow.com/questions/12984991/stop-lapply-from-printing-to-console
+package_apply_all(c('dplyr', 'readr', 'psych', 'ggplot2','e1071'), require)
+
+
+# Senior Citizen is coded numerically (0,1), and indicates if someone is a senior citizen, 
+# so we switched it's type to factor
+
+# We decided to turn CustomerID into a character variable because there are too many 
+# levels to use this as a factor varaible
 #https://github.com/tidyverse/readr/issues/530
 telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
                   col_types = cols()) %>%
-  # Implementation Inspired by:
-  #   https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
-  #   https://gist.github.com/ramhiser/93fe37be439c480dc26c4bed8aab03dd#file-character2factor-r-L8 
   mutate_if(sapply(., is.character), as.factor) %>%
   mutate(
-    # Senior Citizen is coded numerically (0,1), and indicates if someone is a senior citizen, 
-    # so we switched it's type to factor, and labelled it accordingly.
     SeniorCitizen = factor(SeniorCitizen, labels = c('No', 'Yes')),
-    # CustomerID was converted to factor by the blanket mutate_if above, 
-    # but has too many levels to be a factor variable, so we'll convert it 
-    # back to a character variable.
     customerID = as.character(customerID)
   )
 
 str(telco)
+# Our Dataset has 21 Variables, or one independent varaible (Churn) and 20 independent variables.
+
+#Three of our variables are numeric and the other 18 of them are categorical. 
+
+
+
 ```
 
-# Original Research Question
+# Research Question
 
-Is a customer's decision to Churn independent of the type of contract a customer holds, and is customer's tenure.
+Are people with the monthly contract type more likely to terminate their consumption of services from Telco based on the Telco dataset available?
 
-## Null Hypotheses
+More:
+TODO: Yes but what... write here as we come up with them...  
 
-1. Customer's Decision to Churn and the type of contract a customer holds are independent. 
-2. There is no difference in the mean tenture for Customers who decided to Churn, and those who did not decide to Churn. $\mu_{Churned}-\mu_{Not Churned}=0$
-3. There is no difference in the mean monthly charges for Customers who decided to Churn, and those who did no decide to Churn. 
+## Null/Alternative Hypothesis(es?)
 
-## Alternative Hypotheses
-
-1. Customer's Decision to Churn and the type of contract a customer holds are not independent.
-2. There is a significant difference in the mean tenture for Customers who decided to Churn, and those who did not decide to Churn. $\mu_{Churned}-\mu_{Not Churned}\neq0$
-3. There is a significant difference in the mean monthly charges for Customers who decided to Churn, and those who did no decide to Churn.
 
 # Conducting Exploratory Data Analysis
 
