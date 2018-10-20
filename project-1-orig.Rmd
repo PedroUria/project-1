@@ -150,6 +150,7 @@ The histogram of the tenure data seems to indicate a large amount of newer custo
 ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
 # try stacked v. not-stacked...
 ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn),position='dodge')
+
 ```
 
 The tenure histogram showing Churn Yes/No vs. the amount of tenure a customer has, shows the trend we pretty much expected. We can see that a core of long-term customers seems to stick around..... 
