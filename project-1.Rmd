@@ -417,17 +417,47 @@ Worth noting that the tenure data's average is ~32 months, but with a standard d
 ```{r}
 #TODO bins of size to match next plot
 ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
+# the median tenure of the customers who churned is 1/2 the tenure of customers 
+# who didn't churn, 
 hist(telco$tenure)
-# this means we CANNOT use anova, unfortunately. OUr groupmeans are not normal 
-#tenaov = aov(tenure~Churn,data = telco)
-#leveneTest(y=telco$tenure,group=telco$Churn)
+mean(chrn_yes$tenure)
+mean(chrn_no$tenure)
 
+hist(chrn_yes$tenure)
+hist(chrn_no$tenure)
+# not surprisingly, the mean tenure of the customers who churned is 1/2 the tenure of customers 
+# who didn't churn, 
+
+t.test(chrn_yes$tenure,chrn_no$tenure,alternative = "two.sided",var.equal = FALSE)
+# Since our p-value is much less than .05, we reject H0, the mean tenure of telecom customers who churned (for this company) is different than the mean tenure of the telecom customers who did not churn at the alpha = .05 level of significance. 
+
+# We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classificatio model and that it showed predictive power in the models we studied. 
+
+
+# try it with a srs of 1000 for each population....
+yes_sam = sample(chrn_yes$customerID,size=1000)
+no_sam = sample(chrn_no$customerID,size=1000)
+yess = chrn_yes[which(chrn_yes$customerID%in%yes_sam),]
+dim(yess)
+nos = chrn_no[which(chrn_no$customerID%in%no_sam),]
+
+yn_sam = rbind(yess,nos)
+View(yn_sam)
+
+
+t.test(yess$tenure,nos$tenure,alternative = "two.sided",var.equal = FALSE)
+
+wilcox.test(tenure~Churn,data=yn_sam)
 #summary(tenaov)
+
+# as we can see here, there 
 qqnorm(telco$tenure)
 qqline(telco$tenure)
 cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
   geom_boxplot()
 cten_box
+
+
 
 pap_plot = ggplot(data=telco,aes(x=Churn))
 pap_plot + geom_bar(aes(fill=PaperlessBilling))
@@ -474,11 +504,14 @@ Dumber Note: This is not total custermers 40 months ago.... total customers at m
 ### all we need to cahnge here is essentially label the plot 
 # we can't use anova bc of what I just showed here... 
 hist(telco$MonthlyCharges)
+# this data is bimodal.... and slightly skewed but our sample size is large, 
+# so we think
+hist(chrn_no$MonthlyCharges)
+hist(chrn_yes$MonthlyCharges)
 # definitely not normal. 
 boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
 # this was funny... but no
-ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn),position='dodge')
-hist(telco_no$MonthlyCharges)
+ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn))
 # definitely skewed to the right. 
 hist(telco_yes$MonthlyCharges)
 # what we learned is that the customers who ARE churning are definitely paying more $$
@@ -499,7 +532,15 @@ qqline(telco$MonthlyCharges)
 
 charge_box<-ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
   geom_boxplot()
+
 charge_box
+
+t.test(chrn_yes$MonthlyCharges,chrn_no$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
+dim(nos)
+t.test(yess$MonthlyCharges,nos$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
+
+wilcox.test(MonthlyCharges~Churn,data=yn_sam)
+
 ```
 
 This seems to show a general trend of Customers paying more, being more likely to Churn, though there is a lot of variation in MonthlyCharges for Customers that didn't churn, so it may not be a very statistically relevant trend....... 
@@ -578,7 +619,7 @@ TODOS:
   unique(yrc$tenure)
   hist(yrc$tenure)
   dim(yrc)
-  
+  dim(chrn_no)
   
   monthly = telco[which(telco$Contract!="One year"&telco$Contract!="Two year"),]
   unique(monthly$Contract)
