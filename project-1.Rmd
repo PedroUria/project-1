@@ -80,14 +80,6 @@ Is a customer's decision to Churn independent of the type of contract a customer
 2. There is a significant difference in the mean tenure for Customers who decided to Churn, and those who did not decide to Churn. $\mu_{Churned}-\mu_{Not Churned}\neq0$
 3. There is a significant difference in the mean monthly charges for Customers who decided to Churn, and those who did no decide to Churn.
 
-# Updated Research Question
-
-TODO: Flush this out.... see content from paper
-
-## Null Hypotheses
-
-## Alternative Hypotheses
-
 # Conducting Exploratory Data Analysis
 
 > a. Conduct Exploratory Data Analysis that will begin to answer your question, this
@@ -298,7 +290,39 @@ contract_vs_churn_plot = ggplot(data=telco,aes(x=Churn))
 contract_vs_churn_plot + geom_bar(aes(fill=Contract))
 ```
 
-Visually, the Contract and Churn variables don't seem to be independent, counter to what our hypothesis suggests, but we'll revisit this again with a more rigorous analysis later on. Based on this, Churn may be a significantly dependent on Contract Type.
+Visually, the Contract and Churn variables don't seem to be independent, counter to what our hypothesis suggests, but we'll revisit this again with a more rigorous analysis later on. 
+
+It may also be interesting to see what levels of normality in tenure may exist when filtering based on Contract Types. 
+
+```{r}
+yrc <- telco %>% 
+  filter(
+    Contract == "One year" |
+      Contract == "Two Year",
+    Churn == "Yes"
+  )
+unique(yrc$tenure)
+hist(yrc$tenure)
+nrow(yrc)
+```
+
+TODO: Need discussion here
+
+```{r}
+telco_yes <- telco %>% filter(Churn == "Yes")
+telco_no <- telco %>% filter(Churn == "No")
+
+nrow(telco_no)
+monthly <- telco %>% 
+  filter(
+    Contract != "One year",
+    Contract != "Two Year"
+  )
+hist(monthly$tenure)
+hist(monthly$MonthlyCharges)
+```
+
+TODO: Need discussion here
 
 ### Tenure
 
@@ -321,8 +345,6 @@ That being said, we expected the graph to show a negative linear pattern where t
 Lets look at tenure filtered based on Churn. 
 
 ```{r}
-telco_yes <- telco %>% filter(Churn == "Yes")
-telco_no <- telco %>% filter(Churn == "No")
 hist(telco_yes$tenure)
 ```
 
@@ -402,8 +424,13 @@ plot(telco$tenure,telco$TotalCharges,
 
 We can clearly see from this plot why the corplot above called out TotalCharges and tenure as being related. Visually, you see the lower and upper bounding of the monthly charges a customer of the company gets. Most likely due to the variety of service configuration options being offered. 
 
-#### Mean Tunure
-TODO
+```{r}
+cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
+  geom_boxplot()
+cten_box
+```
+
+TODO: Incorporate the boxplot into discussions
 
 ### Online Security
 TODO
@@ -430,6 +457,9 @@ qqline(telco$MonthlyCharges)
 From visual inspection of the histogram and qqplots provided above, we can see that Monthly Charges is not normally distributed. It appears to have 2 different peaks, and as such we likely won't be using ANOVA for analyzing the variance in Monthly Charge samples filtered by Churn... just to be sure though: 
 
 ```{r}
+ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
+  geom_boxplot()
+
 boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
 ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn),position='dodge')
 
@@ -450,9 +480,6 @@ ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
 ```
 
 There does visually appear to be a decent amount of variation between the Churning an non-Churning monthly charge values. But it's hard to say if it is a statistically significant trend in this case.
-
-#### Mean Monthly Charges
-TODO
 
 ### Device Protection
 TODO
@@ -488,11 +515,6 @@ TODO
 TODO
 
 ## Investigating Hypothesis 1
-
-# Updated Research Question
-
-## Updated Null Hypothesess
-## Updated Alternative Hypotheses
 
 # CUTLINE
 
@@ -535,26 +557,26 @@ ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
 # the median tenure of the customers who churned is 1/2 the tenure of customers 
 # who didn't churn, 
 hist(telco$tenure)
-mean(chrn_yes$tenure)
-mean(chrn_no$tenure)
+mean(telco_yes$tenure)
+mean(telco_no$tenure)
 
-hist(chrn_yes$tenure)
-hist(chrn_no$tenure)
+hist(telco_yes$tenure)
+hist(telco_no$tenure)
 # not surprisingly, the mean tenure of the customers who churned is 1/2 the tenure of customers 
 # who didn't churn, 
 
-t.test(chrn_yes$tenure,chrn_no$tenure,alternative = "two.sided",var.equal = FALSE)
+t.test(telco_yes$tenure,telco_no$tenure,alternative = "two.sided",var.equal = FALSE)
 # Since our p-value is much less than .05, we reject H0, the mean tenure of telecom customers who churned (for this company) is different than the mean tenure of the telecom customers who did not churn at the alpha = .05 level of significance. 
 
 # We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classificatio model and that it showed predictive power in the models we studied. 
 
 
 # try it with a srs of 1000 for each population....
-yes_sam = sample(chrn_yes$customerID,size=1000)
-no_sam = sample(chrn_no$customerID,size=1000)
-yess = chrn_yes[which(chrn_yes$customerID%in%yes_sam),]
+yes_sam = sample(telco_yes$customerID,size=1000)
+no_sam = sample(telco_no$customerID,size=1000)
+yess = telco_yes[which(telco_yes$customerID%in%yes_sam),]
 dim(yess)
-nos = chrn_no[which(chrn_no$customerID%in%no_sam),]
+nos = telco_no[which(telco_no$customerID%in%no_sam),]
 
 yn_sam = rbind(yess,nos)
 View(yn_sam)
@@ -571,8 +593,6 @@ qqline(telco$tenure)
 cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
   geom_boxplot()
 cten_box
-
-
 
 pap_plot = ggplot(data=telco,aes(x=Churn))
 pap_plot + geom_bar(aes(fill=PaperlessBilling))
@@ -621,8 +641,8 @@ Dumber Note: This is not total custermers 40 months ago.... total customers at m
 hist(telco$MonthlyCharges)
 # this data is bimodal.... and slightly skewed but our sample size is large, 
 # so we think
-hist(chrn_no$MonthlyCharges)
-hist(chrn_yes$MonthlyCharges)
+hist(telco_no$MonthlyCharges)
+hist(telco_yes$MonthlyCharges)
 # definitely not normal. 
 boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
 # this was funny... but no
@@ -650,7 +670,7 @@ charge_box<-ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
 
 charge_box
 
-t.test(chrn_yes$MonthlyCharges,chrn_no$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
+t.test(telco_yes$MonthlyCharges,telco_no$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
 dim(nos)
 t.test(yess$MonthlyCharges,nos$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
 
@@ -734,7 +754,7 @@ TODOS:
   unique(yrc$tenure)
   hist(yrc$tenure)
   dim(yrc)
-  dim(chrn_no)
+  dim(telco_no)
   
   monthly = telco[which(telco$Contract!="One year"&telco$Contract!="Two year"),]
   unique(monthly$Contract)
