@@ -27,10 +27,17 @@ package_apply_all <- function(list.of.packages, func) {
 
 #resolve dependencies required for the document to run
 #https://stackoverflow.com/questions/12984991/stop-lapply-from-printing-to-console
-package_apply_all(c('dplyr', 'readr','ggplot2', 'psych'), require)
+package_apply_all(c('dplyr', # used throughout
+                    'readr', # load in the dataframe
+                    'ggplot2', # used for 'prettier' graphs
+                    'psych', # used for summary statistics information
+                    'corrplot', # used for building correlation plots
+                    'VIM', # used for determining where missing values are
+                    'mice' # used for imputing missing values
+                    ), require)
 ```
 
-# Load Data Telco
+# Load Telco Data
 
 The following code will load in the Telco Dataset, and setup the variable types appropriately. 
 
@@ -38,6 +45,7 @@ The following code will load in the Telco Dataset, and setup the variable types 
 #https://github.com/tidyverse/readr/issues/530
 telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
                   col_types = cols()) %>%
+  # Change all character-type variables to factor variables
   # Implementation Inspired by:
   #   https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
   #   https://gist.github.com/ramhiser/93fe37be439c480dc26c4bed8aab03dd#file-character2factor-r-L8 
@@ -57,7 +65,7 @@ str(telco)
 
 # Original Research Question
 
-Is a customer's decision to Churn independent of the type of contract a customer holds, and is customer's tenure.
+Is a customer's decision to Churn independent of the type of contract a customer holds, the customer's tenure, and the customers monthly charges?
 
 ## Null Hypotheses
 
@@ -78,16 +86,150 @@ Is a customer's decision to Churn independent of the type of contract a customer
 > i. Summary of the dataset/Descriptive Statistics
 > ii. Graphical representations of the data
 
-First, let's start with some general descriptive statistics about the numberical fields in our data
+## Corplot and Descriptives
+
+First, let's start with some general descriptive statistics and broad comparisons of the variables:
+
+### Continuous Variables
 
 ```{r}
 telcon <- telco %>% 
   select_if(
     sapply(telco, is.numeric))
 describe(telcon)
+
+# corplot of numeric variables
+M <- cor(telcon)
+corrplot(M, method='number')
 ```
 
-## Digging through the variables
+The corrplot of tenure, MonthlyCharges and TotalCharges, shows that there may be a trend between tenure and MonthlyCharges. The '?'s indicate that there are missing TotalCharges values. Let's see if we can impute the missing values and try building the corrplot again. First, we'll need a better understanding of where the missing values are, as it will inform our imputation method. 
+
+```{r}
+# https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
+aggr_plot <- aggr(telcon, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+```
+
+So we can see that the missing values are restricted to TotalCharges, and aren't exceptionally dense. Let's impute the values using mice, and recompute the corrplot. 
+
+```{r}
+# Since the missing data isn't very dense:
+#  Using default parameters for mice
+#  Immediately completing the dataframe
+telcon.imputed <- complete(mice(data = telcon))
+
+# recompute aggr_plot
+aggr_plot.imputed <- aggr(telcon.imputed, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+```
+
+Excellent. telcon.imputed has no missing values. 
+
+```{r}
+M.imputed <- cor(telcon.imputed)
+corrplot(M.imputed, method = "number")
+```
+
+Now with the completed corrplot of the numeric values in our data, we see that there is a strong correlation between tenure, and TotalCharges. This actually makes a lot of sense, as we'd expect both fields to increase every month, usually by the same set rate as customers stay with the company for more time.
+
+There is also some correlation between Monthly Charges and TotalCharges, which fits our assumptions as to how TotalCharges would nominally be calculated.  
+
+A simple approximation of TotalCharges should be (${TotalCharges}={tenure}*{MonthlyCharges}$), but it is only an approximation because we can't assume that the customers monthly charges stay constant over time. We have to remember we're looking at these values at a given snapshot in time.
+
+Lets apply the equation and plot this for fun: 
+```{r}
+telco.computedCharges <- telco %>% 
+  mutate(
+    computedCharges = tenure*MonthlyCharges
+  )
+plot(x=telco.computedCharges$computedCharges, y=telco.computedCharges$TotalCharges, 
+     xlab = "Computed Charges", ylab = "Total Charges", main = "Total vs Computed Charges")
+abline(0,1,col = 'Red', lwd=3)
+```
+
+As expected, this is pretty good approximation, but there is some variance, explained by us only having access to data given at a snapshot in time. 
+
+### Categorical Variables
+
+```{r}
+telcoc <- telco %>% select_if(
+  sapply(., is.factor)
+)
+str(telcoc)
+```
+
+Lots of variables.. describe probably won't help much here, so lets move straight to corrplots. 
+
+```{r}
+# we'll need to force the factor variables into numeric variables temporarily
+telcoc.num <- telcoc %>% mutate_if(sapply(., is.factor), as.numeric)
+M <- cor(telcoc.num)
+corrplot(M, method = "ellipse")
+```
+
+Since we'll be most interested in variables affecting Churn, so lets look at those. In order of most significant correlation:
+
+1.  Contract Type
+2.  Online Security
+3.  Tech Support 
+4.  Online Backup
+5.  Paperless Billing
+6.  Device Protection
+7.  Dependents
+8.  Partner
+9.  Senior Citizen
+10. Payment Method
+
+### Combined Corrplot
+
+We'll need to convert all variables to be numeric, and see if the corrplot gives us something useful. 
+
+```{r}
+# Dropping unique ID values in customerID column for this.
+telco.num <- select(telco, -customerID) %>%
+  mutate_if(
+    # force remaining columns to be numeric types
+    sapply(., function(x) !is.numeric(x)),
+    as.numeric)
+str(telco.num)
+```
+
+We'll probably need to impute the values in TotalCharges again, but lets double check. 
+
+```{r}
+aggr_plot <- aggr(telco.num, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+```
+
+As expected, the only values missing are still in the totalCharges column, let's use mice to impute the values as before, and build the corplot.
+
+```{r}
+telco.num.imputed <- complete(mice(data = telco.num))
+aggr_plot <- aggr(telco.num.imputed, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+```
+
+Alright... now for the corrplot:
+
+```{r}
+# corplot of numeric variables
+M <- cor(telco.num.imputed)
+corrplot(M, method='ellipse')
+```
+
+Our combined list of the top 10 significantly correlated variables:
+
+1. Contract
+2. tenure
+3. Online Security
+4. Tech Support
+5. Online Backup
+6. Paperless Billing
+7. Monthly Charges
+8. Device Protection
+9. Dependents
+10. Partner
+
+## Individual Variables
+
+Now we'll dig through individual variables and explore how they relate to Churn. 
 
 ### Churn
 
@@ -103,7 +245,9 @@ t <- table(telco$Churn)
 t[[2]]/(t[[1]]+t[[2]])
 ```
 
-From the graph we can see that the majority of customers aren't churning, but at the same time we've illustrated why the Churn factors are important to telecom companies. $26%$ of their customers are churning in a given month. 
+From the graph we can see that the majority of customers aren't churning, but at the same time we've illustrated why the Churn factors are important to telecom companies. $26%$ of their **total** customers are churning in the given month.
+
+Let's dig into other variables more, to try and understand what causes this.
 
 An interesting question from here would be whether the customers that are churning are customers that have been with the company for a long time, or more customers that have just recently picked up subscriptions:
 
@@ -113,12 +257,12 @@ boxplot(tenure~Churn, data = telco)
 
 We can see a definite trend toward 'newer' subscribers churning in the boxplot above, but this doesn't necessarily tell the whole story, as it seems to indicate that the majority of subscribers who are churning have been with the company for ~ 1 year. In reality this is a 'mean vs median' issue, that can be illusrated better using a different graphic, but we'll get into that more when discusing tenure.
 
-### Contract
+### Contract Type
 
 There are three kinds of contracts a customer can have, that are mentioned in the telco data. 
 
 ```{r}
-unique(telco$Contract)
+levels(telco$Contract)
 ```
 
 So how many customers in the data are using each contract type?
@@ -127,7 +271,7 @@ So how many customers in the data are using each contract type?
 ggplot(data=telco) + geom_bar(aes(x=Contract))
 ```
 
-We can see from the graph that the month-to-month contracts are far more popular than either the one year or two year contracts. But we should also take a look at how many customers using the month-to-month contract are churning in the given month, vs. how many customers using the other contract types are churning. 
+We can see from the graph that the month-to-month contracts are far more popular than either the one year or two year contracts. But we should also take a look at how many customers using the each contract type are churning in the given month, vs. how many customers using the other contract types are churning. 
 
 Below we provide two charts for doing that:
 
@@ -138,7 +282,7 @@ contract_vs_churn_plot = ggplot(data=telco,aes(x=Churn))
 contract_vs_churn_plot + geom_bar(aes(fill=Contract))
 ```
 
-Visually, the Contract and Churn variables don't seem to be independent, as our origin hypothesis suggested, but we'll revisit this again with a more rigorous analysis later on. 
+Visually, the Contract and Churn variables don't seem to be independent, counter to what our hypothesis suggests, but we'll revisit this again with a more rigorous analysis later on. Based on this, Churn may be a significantly dependent on Contract Type.
 
 ### Tenure
 
@@ -150,7 +294,7 @@ Is it normally distributed?
 hist(telco$tenure)
 ```
 
-No need to do any further testing here, this is clearly not a normally distributed variable. In fact it looks like it's exactly the opposite of a normally distributed variable.
+No need to do any further testing here, this is clearly not a normally distributed variable.
 
 Does that trend stay the same if we group the customers by those that Churned, and those that didn't?
 
@@ -160,22 +304,22 @@ telco_no <- telco %>% filter(Churn == "No")
 hist(telco_yes$tenure)
 ```
 
-The histogram of tenure for customers that have churned, reinforces the trend we saw when looking at Churn before, in that more recently added subscribers are where most of the churning customers are comming from. 
+This histogram of tenure for customers that have churned, reinforces the trend we saw when looking at Churn earlier. It appears that more of the Churning behavior is occuring in the most recently added customers.  
 
 ```{r}
 telco_yes_less <- telco_yes %>% filter(tenure <= 10)
 nrow(telco_yes_less)/nrow(telco_yes)
 ```
 
-In fact over 51% of the customers that churned, started their subscriptions in the last 10 months.
+Indeed, over 51% of the customers that churned in the given month started their subscriptions within the previous 10 months.
 
 ```{r}
 hist(telco_no$tenure)
 ```
 
-Relative to the overall histogram for tenure above, we can see the spike of new customers has dissapeared. It is also extremely interesting that the chart above seems to imply that either a much smaller number of customers was joining the service about 40 months ago, or they may have had a much higher rate of churn during that period. It is hard to say given the information available in the dataset. 
+Relative to the overall histogram for tenure above, we can see the spike of new customers has dissapeared. It is also extremely interesting that the chart above seems to imply that either a much smaller number of customers was joining the service about 40 months ago, or that the company may have experienceing a higher higher rate of churn during that period. It is hard to say given the information available in this dataset, but would likely be worth pursuing further. 
 
-It may also be intersting to see the not Churning, and Churning customers combined in the same graph vs tenure: 
+It may also be interesting to see 'Not Churning', and 'Churning' customers combined in the same graph vs tenure. Here are two variations of that graph.
 
 ```{r}
 ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
@@ -184,7 +328,7 @@ ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn),position='dodge')
 
 These charts above require a bit of interpretation, but are quite interesting to look at. 
 
-We can clearly see that more of the customers that started with the company this month cancelled their services than those that stayed with the company. Wow. 
+We can clearly see that of the customers that started with the company during the month the data was recorded, the majority of them have already Churned.  
 
 ```{r}
 month1.no_telco <- telco %>% filter(tenure <= 1, Churn == "No")
@@ -196,11 +340,11 @@ month2.all <- telco %>% filter(tenure == 2)
 nrow(month2.no_telco)/nrow(month2.all)
 ```
 
-After this last month, the company only has ~39% of the customers that started using it's services during this last month. 
+During the current month, the company only has ~39% of the customers that started using it's services during the previous month. 
 
-Of those who were still using it's services the previous month, the company only retained ~48%. 
+Of those customers that started using the companies services 2 months ago, and were still using their services through the previous month, the company has only retained ~48%. 
 
-There appears to be a trend of sorts, lets look at %retention / months of service, for this month. 
+There appears to be a trend of sorts, lets look at %retention after the previous month / months of service. 
 
 ```{r}
 ret <- telco %>% group_by(tenure, Churn) %>%
@@ -212,11 +356,12 @@ scatter.smooth(y=ret.final$freq,
                x= ret.final$tenure,
                xlab = "Customer Tenure",
                ylab = "Rate of Retention",
-               main = "Rate of Retention vs Customer Tenure")
+               main = "Rate of Retention in Current Month\nvs\nCustomer Tenure")
 
 ```
 
-This shows a trend that seems to make intuitive sense... Customers that have been with the company longer, tend to stay with the company. 
+This shows a trend that seems to make intuitive sense... 
+*Customers that have been with the company longer, are statistically more likely to stay with the company through the current month.* 
 
 In the given month for which we have Churn information we saw this trend playout. 
 
@@ -229,6 +374,10 @@ In the given month for which we have Churn information we saw this trend playout
 
 ## Investigating Hypothesis 1
 
+# Updated Research Question
+
+## Updated Null Hypothesess
+## Updated Alternative Hypotheses
 
 # CUTLINE
 
@@ -286,8 +435,6 @@ pap_plot + geom_bar(aes(fill=PaperlessBilling))
 contract_plot = ggplot(data=telco,aes(x=Churn))
 contract_plot + geom_bar(aes(fill=Contract))
 table(telco_yes$Contract)
-
-
 
 ```
 
