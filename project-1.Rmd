@@ -3,13 +3,15 @@ title: "project1"
 author: "zbuckley, pedrouria, seanpili"
 date: "October 13, 2018"
 output:
-  pdf_document: default
+  pdf_document:
+    toc: true
+    toc_depth: 3
   html_document: default
+  
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
+knitr::opts_chunk$set(include = FALSE)
 ##Helper Functions here for cleanly handling imports
 #install_all - function for installing all packages in a list that aren't available
 #  inspired by https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
@@ -499,7 +501,13 @@ ggplot(data=telco)+geom_bar(aes(x=PaperlessBilling, fill=Churn))
 ggplot(data=telco)+geom_bar(aes(x=Churn, fill=PaperlessBilling))
 ```
 
-Our guess was that the 
+There is still a trend here in that customers with paperless billing appear to be more likely to churn. 
+
+```{r}
+count(telco %>% filter(PaperlessBilling == "Yes", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~75% of the customers that churned this month, had opted into of the company's paperless billing option.
 
 ### Monthly Charges
 
@@ -539,39 +547,199 @@ ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
 There does visually appear to be a decent amount of variation between the Churning an non-Churning monthly charge values. But it's hard to say if it is a statistically significant trend in this case.
 
 ### Device Protection
-TODO
+
+Device Protection is a categorical variable (3 levels), indicating whether a customer has opted into the company's Device Protection plans, has no internet service, or has opted out of the device protection plan. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=DeviceProtection))
+ggplot(data=telco)+geom_bar(aes(x=DeviceProtection, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=DeviceProtection))
+```
+
+Visually we can tell that most of the customer's that are churning have opted out of the company's device protection plan. 
+
+```{r}
+count(telco %>% filter(DeviceProtection == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~65% of the customers that churned this month, had opted out of the company's device protection plan.
 
 ### Dependents
-TODO
+
+Dependents is a categorical variable (2 levels), indicating whether a customer has dependents or not. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=Dependents))
+ggplot(data=telco)+geom_bar(aes(x=Dependents, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=Dependents))
+```
+
+Visually, we can see that the majority of customers that churned have no dependents.
+
+```{r}
+count(telco %>% filter(Dependents == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~82% of the customers that churned this month, have no dependents.
 
 ### Partner
-TODO
+
+Partner is a categorical variable (2 levels), indicating whether a customer has a partner or not. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=Partner))
+ggplot(data=telco)+geom_bar(aes(x=Partner, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=Partner))
+count(telco %>% filter(Partner == "Yes"))/count(telco)
+```
+
+Interestingly ~48% of our sample customers have Partners, which appears to be the most evently distributed categorical variable we've seen yet. We continue to see a strong relationship between the variable and Churn.  
+
+```{r}
+count(telco %>% filter(Partner == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~64% of the customers that churned this month, had opted into of the company's paperless billing option.
 
 ### Senior Citizen
-TODO
+
+Senior Citizen is a categorical variable (2 levels), indicating whether a customer is a senior citizen or not.
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=SeniorCitizen))
+ggplot(data=telco)+geom_bar(aes(x=SeniorCitizen, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=SeniorCitizen))
+```
+
+There does appear to be a relationship between SeniorCitizen and Churn, though it isn't as pronounced as the previous visual trends were. 
+
+```{r}
+count(telco %>% filter(SeniorCitizen == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~75% of the customers that churned this month, are not senior citizens.
 
 ### Gender
-TODO
+
+Gender is a categorical variable (2 levels), indicating whether a customer is  
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=gender))
+ggplot(data=telco)+geom_bar(aes(x=gender, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=gender))
+count(telco %>% filter(gender=="Male"))/count(telco)
+```
+
+Gender appears to also be fairly evenly distributed with ~50.5% of the customers in our sample being Male. Visually there appears to be no relationship between the gender and Churn variables. 
+
+```{r}
+count(telco %>% filter(gender == "Male", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+Confirming our visual inspection, ~49.8% of churning customers are Male, since this is aligned with the population distribution, there is no statistically relevent trend between gender and Churn. 
 
 ### Phone Service
-TODO
+
+Phone Service is a categorical variable (2 levels), indicating whether a customer has to the phone service provided by the company or not. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=PhoneService))
+ggplot(data=telco)+geom_bar(aes(x=PhoneService, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=PhoneService))
+```
+
+From the graph we see that the PhoneService categorical variable is skewed heavily toward having the service.  
+
+```{r}
+count(telco %>% filter(PhoneService == "Yes", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~91% of the customers that churned this month, have the company's phone service. We must be mindful here, that this may simply be reflecting the distribution of the Phone Service variable itself. 
+
+```{r}
+count(telco %>% filter(PhoneService == "Yes"))/count(telco)
+```
+
+So ~90% of the population have the phone service, and ~91% of the churning customers have the phone service, so there isn't a significant relationship between PhoneService and Churn. 
+
+
 
 ### Multiple Lines
-TODO
+
+Multiple Lines is a categorical variable (3 levels), indicating whether a customer has multiple lines, no phone service, or does not have multiple lines.
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=MultipleLines))
+ggplot(data=telco)+geom_bar(aes(x=MultipleLines, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=MultipleLines))
+```
+
+Visually there doesn't appear to be a very strong trend here, as the ratio's between the categorical variables values seem to remain similar between the customers that Churn, and the customers that don't Churn. 
 
 ### Internet Service
-TODO
+
+Internet Service is a categorical variable (3 levels), indicating whether a customer is DSL, Fiber optic, or no Internet Service. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=InternetService))
+ggplot(data=telco)+geom_bar(aes(x=InternetService, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=InternetService))
+```
+
+There appears to be a relationship between the InternetService and Churn variables, as the majority of churning customers are using Fiber optic service. 
+
+```{r}
+count(telco %>% filter(InternetService == "Fiber optic", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~70% of the customers that churned this month, were using the company's Fiber Optic internet service. 
 
 ### Streaming TV
-TODO
+
+StreamingTV is a categorical variable (3 levels), indicating whether a customer has the company's TV Streaming Service, has no internet service, or has opted out of the TV streaming service. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=StreamingTV))
+ggplot(data=telco)+geom_bar(aes(x=StreamingTV, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=StreamingTV))
+```
+
+There does appear to be a releationship here, though simply be a reflection of trends seen earlier, as the ratios between having StreamingTV and not having it don't seem to change when comparing a sample of only customers that churn versus a sample of only customers that aren't churning. The trend we do see, it that it appears that customers with No Internet Service are less likely to Churn.  
+
+```{r}
+count(telco %>% filter(StreamingTV == "No internet service", Churn == "Yes"))/count(telco %>% filter(StreamingTV == "No internet service"))
+```
+
+Of those customers that have No internet service, only ~7% churned.
 
 ### Streaming Movies
-TODO
+
+Streaming Movies is a categorical variable (3 levels), indicating whether a customer has the company's movie streaming service, has no internet service, or has opted out of the movie streaming service. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=StreamingMovies))
+ggplot(data=telco)+geom_bar(aes(x=StreamingMovies, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=StreamingMovies))
+```
+
+Similarly to the StreamingTV variable above, we can tell visually that the only trend here is related having internet service, it doesn't appear a relationship between StreamingTV and Churn exists outside of that.
 
 ### Payment Method
-TODO
 
-## Investigating Hypothesis 1
+Payment Method is a categorical variable (2 levels), indicating whether a customer is using Paperless Billing, or not. 
+
+```{r}
+ggplot(data=telco) + 
+  geom_bar(aes(x=PaymentMethod)) +
+  theme(axis.text.x=element_text(angle=-15,hjust=.1,vjust=1))
+ggplot(data=telco) + 
+  geom_bar(aes(x=PaymentMethod, fill=Churn)) + 
+  theme(axis.text.x=element_text(angle=-15,hjust=.1,vjust=1))
+ggplot(data=telco) + 
+  geom_bar(aes(x=Churn, fill=PaymentMethod))
+```
+
+The relationship between these appears to be fairly complicated. But visually a relationship does exist, for example it appears that ~50% of those customers who are churning are paying with electronic check, while only about 25% of the customer who are NOT churning are paying with electronic check.
 
 # CUTLINE
 
