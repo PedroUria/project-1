@@ -11,8 +11,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
+knitr::opts_chunk$set(include = FALSE)
 ##Helper Functions here for cleanly handling imports
 #install_all - function for installing all packages in a list that aren't available
 #  inspired by https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
