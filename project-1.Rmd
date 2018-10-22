@@ -35,6 +35,7 @@ package_apply_all(c('dplyr', # used throughout
                     'VIM', # used for determining where missing values are
                     'mice' # used for imputing missing values
                     ), require)
+
 ```
 
 # Load Telco Data
@@ -102,6 +103,13 @@ describe(telcon)
 M <- cor(telcon)
 corrplot(M, method='number')
 ```
+
+Interestingly, all of our numeric variables have a rather large standard deviation compared to their respective means and ranges, especially for the Total Charges variable.
+additionally, the meean is roughly 1.6x larger than the median.
+
+This makes sense though, because customers have different combinations  of services, leading to custom variations in each customers Monthly Charges. The longer customers stay with the company, the more the variations in Average Charges expand on the Variance in Total Charges. In fact, it's quite likely that the variance linearly increases as the tenure of customers increase. 
+
+Tenure should probably a have high standard deviation, as it's time driven. We expect that as long as customers continue to stay, tenure would only increase. Thus the right skewed-ness we see represented by the describe output. 
 
 The corrplot of tenure, MonthlyCharges and TotalCharges, shows that there may be a trend between tenure and MonthlyCharges. The '?'s indicate that there are missing TotalCharges values. Let's see if we can impute the missing values and try building the corrplot again. First, we'll need a better understanding of where the missing values are, as it will inform our imputation method. 
 
@@ -282,7 +290,39 @@ contract_vs_churn_plot = ggplot(data=telco,aes(x=Churn))
 contract_vs_churn_plot + geom_bar(aes(fill=Contract))
 ```
 
-Visually, the Contract and Churn variables don't seem to be independent, counter to what our hypothesis suggests, but we'll revisit this again with a more rigorous analysis later on. Based on this, Churn may be a significantly dependent on Contract Type.
+Visually, the Contract and Churn variables don't seem to be independent, counter to what our hypothesis suggests, but we'll revisit this again with a more rigorous analysis later on. 
+
+It may also be interesting to see what levels of normality in tenure may exist when filtering based on Contract Types. 
+
+```{r}
+yrc <- telco %>% 
+  filter(
+    Contract == "One year" |
+      Contract == "Two Year",
+    Churn == "Yes"
+  )
+unique(yrc$tenure)
+hist(yrc$tenure)
+nrow(yrc)
+```
+
+TODO: Need discussion here
+
+```{r}
+telco_yes <- telco %>% filter(Churn == "Yes")
+telco_no <- telco %>% filter(Churn == "No")
+
+nrow(telco_no)
+monthly <- telco %>% 
+  filter(
+    Contract != "One year",
+    Contract != "Two Year"
+  )
+hist(monthly$tenure)
+hist(monthly$MonthlyCharges)
+```
+
+TODO: Need discussion here
 
 ### Tenure
 
@@ -292,19 +332,23 @@ Is it normally distributed?
 
 ```{r}
 hist(telco$tenure)
+qqnorm(telco$tenure)
+qqline(telco$tenure)
 ```
 
-No need to do any further testing here, this is clearly not a normally distributed variable.
+No need to do any further testing here, this is clearly not a normally distributed variable, based on visual inspection of the histogram and qqplot mechanisms.
 
-Does that trend stay the same if we group the customers by those that Churned, and those that didn't?
+The histogram of the tenure data seems to indicate a large amount of newer customers relative to the number of customers that have long-running accounts. But it’s hard to say if this is a recent trend or caused by the ongoing churn that the company is interesting in predicting.
+
+That being said, we expected the graph to show a negative linear pattern where the number of customers who have stayed with telco has steadily declined over the years… but that isn’t the case. There are more customers that joined in the last 5 months than any other 5 month interval in the data, but it appears to level out after about 25 months and then rises again after 5 years. This is good news for the company, as there appears to be a solid core of happy long-term customers.
+
+Lets look at tenure filtered based on Churn. 
 
 ```{r}
-telco_yes <- telco %>% filter(Churn == "Yes")
-telco_no <- telco %>% filter(Churn == "No")
 hist(telco_yes$tenure)
 ```
 
-This histogram of tenure for customers that have churned, reinforces the trend we saw when looking at Churn earlier. It appears that more of the Churning behavior is occuring in the most recently added customers.  
+Nope. The histogram above shows the same trend we saw when looking at Churn earlier. It appears that more of the Churning behavior is occuring in the most recently added customers.  
 
 ```{r}
 telco_yes_less <- telco_yes %>% filter(tenure <= 10)
@@ -328,7 +372,13 @@ ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn),position='dodge')
 
 These charts above require a bit of interpretation, but are quite interesting to look at. 
 
-We can clearly see that of the customers that started with the company during the month the data was recorded, the majority of them have already Churned.  
+It appears that most customers who churn do it early, meaning to generally that customers tend to stick around so long as they've been around beyond a certain amount of time. 
+
+The tiny bar where tenure equals 0 appears to represent customers who haven’t been with the company for a full month yet, we aren’t certain why it’s so much smaller than everything else. Speculating, it makes sense that none of these customers have churned because they technically haven’t been billed yet, this might be a hiccup in the data possibly because this data was recording from a larger system part-way through a given month. Potentially, the blib is due to the 'new' contracts in the month during which the data was recorded.
+
+It is important to note, that because of how this chart is laid out, the total number of customers during month 0, can only be calculated by adding up all of the no churn customers from each tenure point. In the process of doing this EDA, we found ourselves accidentally confusing total number of customers x number of months ago, with *the number of customers that joined x number of months ago that haven't churned during month 1*. Which is what a single bar at a given tenure actually tells you.
+
+We can clearly see that of the customers that started with the company during month 1, the majority of them have already Churned as of when the data was recorded in month 0.  
 
 ```{r}
 month1.no_telco <- telco %>% filter(tenure <= 1, Churn == "No")
@@ -363,21 +413,108 @@ scatter.smooth(y=ret.final$freq,
 This shows a trend that seems to make intuitive sense... 
 *Customers that have been with the company longer, are statistically more likely to stay with the company through the current month.* 
 
-In the given month for which we have Churn information we saw this trend playout. 
+Let's also take a look at how tenure and totalCharges are related. We know from the corplot above, that they are correlated: 
 
-#### Mean Tunure
+```{r}
+plot(telco$tenure,telco$TotalCharges,
+     main = "Total Charges vs tenure",
+     ylab = "Total Charges",
+     xlab = "tenure")
+```
 
+We can clearly see from this plot why the corplot above called out TotalCharges and tenure as being related. Visually, you see the lower and upper bounding of the monthly charges a customer of the company gets. Most likely due to the variety of service configuration options being offered. 
 
+```{r}
+cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
+  geom_boxplot()
+cten_box
+```
+
+TODO: Incorporate the boxplot into discussions
+
+### Online Security
+TODO
+
+### Tech Support
+TODO
+
+### Online Backup
+TODO
+
+### Paperless Billing
+TODO
 
 ### Monthly Charges
-#### Mean Monthly Charges
+
+Let's check for normality through the histogram and qqplots. 
+
+```{r}
+hist(telco$MonthlyCharges)
+qqnorm(telco$MonthlyCharges)
+qqline(telco$MonthlyCharges)
+```
+
+From visual inspection of the histogram and qqplots provided above, we can see that Monthly Charges is not normally distributed. It appears to have 2 different peaks, and as such we likely won't be using ANOVA for analyzing the variance in Monthly Charge samples filtered by Churn... just to be sure though: 
+
+```{r}
+ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
+  geom_boxplot()
+
+boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
+ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn),position='dodge')
+
+hist(telco_no$MonthlyCharges)
+qqnorm(telco_no$MonthlyCharges)
+qqline(telco_no$MonthlyCharges)
+
+hist(telco_yes$MonthlyCharges)
+qqnorm(telco_yes$MonthlyCharges)
+qqline(telco_yes$MonthlyCharges)
+```
+
+This means ANOVA will not work for comparing variance between the filtered observations of MonthlyCharges, because ANOVA makes assumptions about normally distribed samples, then compares mean and variances between them. 
+
+```{r}
+ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
+  geom_boxplot()
+```
+
+There does visually appear to be a decent amount of variation between the Churning an non-Churning monthly charge values. But it's hard to say if it is a statistically significant trend in this case.
+
+### Device Protection
+TODO
+
+### Dependents
+TODO
+
+### Partner
+TODO
+
+### Senior Citizen
+TODO
+
+### Gender
+TODO
+
+### Phone Service
+TODO
+
+### Multiple Lines
+TODO
+
+### Internet Service
+TODO
+
+### Streaming TV
+TODO
+
+### Streaming Movies
+TODO
+
+### Payment Method
+TODO
 
 ## Investigating Hypothesis 1
-
-# Updated Research Question
-
-## Updated Null Hypothesess
-## Updated Alternative Hypotheses
 
 # CUTLINE
 
@@ -420,15 +557,15 @@ ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
 # the median tenure of the customers who churned is 1/2 the tenure of customers 
 # who didn't churn, 
 hist(telco$tenure)
-mean(chrn_yes$tenure)
-mean(chrn_no$tenure)
+mean(telco_yes$tenure)
+mean(telco_no$tenure)
 
-hist(chrn_yes$tenure)
-hist(chrn_no$tenure)
+hist(telco_yes$tenure)
+hist(telco_no$tenure)
 # not surprisingly, the mean tenure of the customers who churned is 1/2 the tenure of customers 
 # who didn't churn, 
-str(telco)
-t.test(chrn_yes$tenure,chrn_no$tenure,alternative = "two.sided",var.equal = FALSE)
+
+t.test(telco_yes$tenure,telco_no$tenure,alternative = "two.sided",var.equal = FALSE)
 
 # Since our p-value is much less than .05, we reject H0, the mean tenure of telecom customers who churned (for this company) is different than the mean tenure of the telecom customers who did not churn at the alpha = .05 level of significance. 
 
@@ -436,11 +573,11 @@ t.test(chrn_yes$tenure,chrn_no$tenure,alternative = "two.sided",var.equal = FALS
 
 
 # try it with a srs of 1000 for each population....
-yes_sam = sample(chrn_yes$customerID,size=1000)
-no_sam = sample(chrn_no$customerID,size=1000)
-yess = chrn_yes[which(chrn_yes$customerID%in%yes_sam),]
+yes_sam = sample(telco_yes$customerID,size=1000)
+no_sam = sample(telco_no$customerID,size=1000)
+yess = telco_yes[which(telco_yes$customerID%in%yes_sam),]
 dim(yess)
-nos = chrn_no[which(chrn_no$customerID%in%no_sam),]
+nos = telco_no[which(telco_no$customerID%in%no_sam),]
 
 yn_sam = rbind(yess,nos)
 View(yn_sam)
@@ -458,8 +595,6 @@ cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
   geom_boxplot()
 cten_box
 
-
-
 pap_plot = ggplot(data=telco,aes(x=Churn))
 pap_plot + geom_bar(aes(fill=PaperlessBilling))
 
@@ -469,7 +604,7 @@ table(telco_yes$Contract)
 
 ```
 
-Customer tenure for this month is clearly not normally distributed. It appears that relatively a large number of new customers have appeared over the last 5 months, but we have to rember that we have no data on customers who cancelled their service that joined any time in the last 5 years and 10 months.
+Customer tenure for this month is clearly not normally distributed. It appears that relatively a large number of new customers have appeared over the last 5 months, but we have to remember that we have no data on customers who cancelled their service that joined any time in the last 5 years and 10 months.
 
 That is to say, the number of new customers telco signs every month may have been consistent over the last six years, but since we can only see 
 
@@ -507,8 +642,8 @@ Dumber Note: This is not total custermers 40 months ago.... total customers at m
 hist(telco$MonthlyCharges)
 # this data is bimodal.... and slightly skewed but our sample size is large, 
 # so we think
-hist(chrn_no$MonthlyCharges)
-hist(chrn_yes$MonthlyCharges)
+hist(telco_no$MonthlyCharges)
+hist(telco_yes$MonthlyCharges)
 # definitely not normal. 
 boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
 # this was funny... but no
@@ -536,7 +671,7 @@ charge_box<-ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
 
 charge_box
 
-t.test(chrn_yes$MonthlyCharges,chrn_no$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
+t.test(telco_yes$MonthlyCharges,telco_no$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
 dim(nos)
 t.test(yess$MonthlyCharges,nos$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
 
@@ -621,8 +756,7 @@ TODOS:
   hist(yrc$tenure, xlab = "Tenure in Months", main = "Tenure of annual and bi-annual Churners",breaks = c(0:72)*1 )
   max(telco$tenure)
   dim(yrc)
-  72/12
-  dim(chrn_no)
+  dim(telco_no)
   
   monthly = telco[which(telco$Contract!="One year"&telco$Contract!="Two year"),]
   unique(monthly$Contract)
