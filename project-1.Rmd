@@ -35,8 +35,9 @@ package_apply_all(c('dplyr', # used throughout
                     'psych', # used for summary statistics information
                     'corrplot', # used for building correlation plots
                     'VIM', # used for determining where missing values are
-                    'mice' # used for imputing missing values
-                    ), require)
+                    'mice', # used for imputing missing values
+                    'car', # used to create leveneTest
+                    'e1071'), require)
 
 ```
 
@@ -109,7 +110,7 @@ corrplot(M, method='number')
 Interestingly, all of our numeric variables have a rather large standard deviation compared to their respective means and ranges, especially for the Total Charges variable.
 additionally, the meean is roughly 1.6x larger than the median.
 
-This makes sense though, because customers have different combinations  of services, leading to custom variations in each customers Monthly Charges. The longer customers stay with the company, the more the variations in Average Charges expand on the Variance in Total Charges. In fact, it's quite likely that the variance linearly increases as the tenure of customers increase. 
+This makes sense though, because customers have different combinations  of services, leading to custom variations in each customers Monthly Charges. The longer customers stay with the company, the more the variations in Monthly Charges expand on the Variance in Total Charges. In fact, it's quite likely that the variance linearly increases as the tenure of customers increase. 
 
 Tenure should probably a have high standard deviation, as it's time driven. We expect that as long as customers continue to stay, tenure would only increase. Thus the right skewed-ness we see represented by the describe output. 
 
@@ -577,29 +578,11 @@ TODO
 ### Descriptive Statistics and Graphical Representations - Numerical Data
 
 
-```{r}
-telcon <- telco %>% 
-  select_if(
-    sapply(telco, is.numeric))
-describe(telcon)
-
-
-plot(telco$tenure,telco$TotalCharges)
-summary(lm(TotalCharges~tenure,data=telco))
-2283.3/1397.47
-
-```
-
-TODO: Notes/Thoughts/Comments here regarding describe output
-
-# Interestingly, all of our numeric variables have a rather large standard deviation compared to their respective means and ranges, especially for the Total Charges variable. 
-# additionally, the meean is roughly 1.6x larger than the median. 
-
 # This makes sense though, because customers have different numbers of services and not all of them pay for tech support or have a warranty, and the longer customers stay with the company, the bigger the differences will be in their total charges. 
 
 # Additionally, we beleive that the rather large standard deviation in Monthly charges is for a similar reason, there are so many combinations of services/warranties that customers can choose to consume. 
 
-# it also makes sense for there to be a rather high standard deviation for the tenure, 
+# It also makes sense for there to be a rather high standard deviation for the tenure, 
 # because the number of people remaining with telco can only decrease, not increase, 
 # so it makes sense that the distribution is slightly right skewed.
 
@@ -608,216 +591,105 @@ TODO: Notes/Thoughts/Comments here regarding describe output
 Worth noting that the tenure data's average is ~32 months, but with a standard deviation of ~24 months. This amount of variability probably explains why the company is interested in getting a better understanding of their customer churn.
 
 ```{r}
-#TODO bins of size to match next plot
-ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
-# the median tenure of the customers who churned is 1/2 the tenure of customers 
-# who didn't churn, 
-hist(telco$tenure)
+##Modeling 
+cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +geom_boxplot()
+cten_box
+# the median tenure of the customers who churned is roughly 1/2 the tenure of customers who didn't churn.
 mean(telco_yes$tenure)
 mean(telco_no$tenure)
+# The same can be said for the means, which is why we 
+# Want to conduct a t-test to determine if these means are different.
 
-hist(telco_yes$tenure)
-hist(telco_no$tenure)
-# not surprisingly, the mean tenure of the customers who churned is 1/2 the tenure of customers 
-# who didn't churn, 
+# Check assumptions before conducting our t-test. 
 
+#1: Independence 
+
+# Although we are not sure if our Telco data is synthetically generated or from real customers who might communicate with each other about their service, we still think that it is reasonable to assume that customers  are churning independently of each other.  
+
+# 2: Normality
+
+skewness(telco$tenure)
+skewness(telco_no$tenure)
+skewness(telco_yes$tenure)
+hist(telco$tenure)# not normal
+hist(telco_no$tenure) # not normal 
+hist(telco_yes$tenure)# not normal and definitely skewed right, 
+# but our sample contains 1869 observations, so we think we will 
+# still be able to use a t-test. 
+
+qqnorm(telco$tenure)
+qqline(telco$tenure)
+
+# Note, T-tests are robust to non-normal data if their sample sizes are high enough (>30) because of the central limit theorem.
+
+## Tenure doesn't appear to be normally distrubted but since the sample size of each grouping of tenure, n1 (Churn = Yes) and n2 (Churn = no), are large, (n1 = 1869 &  n2 5174, respectively) is much higher than 30 and the overall skewness of tenure (.2394377) is .significantly less than 1, we beleive that we should be able to use a t-test to determine if there is a significant difference between the mean tenures of customers who did and did not churn. 
+
+# Check if we should use pooled variances or Welch's version of t-test.
+sd(telco_yes$tenure)
+sd(telco_no$tenure)
+leveneTest(tenure~Churn,data=telco)
+# Sample std devs are not = and we reject H0 that the variances of each group are not equal. 
+
+
+
+# Code our t-test in R.
 t.test(telco_yes$tenure,telco_no$tenure,alternative = "two.sided",var.equal = FALSE)
 
 # Since our p-value is much less than .05, we reject H0, the mean tenure of telecom customers who churned (for this company) is different than the mean tenure of the telecom customers who did not churn at the alpha = .05 level of significance. 
 
-# We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classificatio model and that it showed predictive power in the models we studied. 
-
-
-# try it with a srs of 1000 for each population....
-yes_sam = sample(telco_yes$customerID,size=1000)
-no_sam = sample(telco_no$customerID,size=1000)
-yess = telco_yes[which(telco_yes$customerID%in%yes_sam),]
-dim(yess)
-nos = telco_no[which(telco_no$customerID%in%no_sam),]
-
-yn_sam = rbind(yess,nos)
-View(yn_sam)
-
-
-t.test(yess$tenure,nos$tenure,alternative = "two.sided",var.equal = FALSE)
-
-wilcox.test(tenure~Churn,data=yn_sam)
-#summary(tenaov)
-
-# as we can see here, there 
-qqnorm(telco$tenure)
-qqline(telco$tenure)
-cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
-  geom_boxplot()
-cten_box
-
-pap_plot = ggplot(data=telco,aes(x=Churn))
-pap_plot + geom_bar(aes(fill=PaperlessBilling))
-
-contract_plot = ggplot(data=telco,aes(x=Churn))
-contract_plot + geom_bar(aes(fill=Contract))
-table(telco_yes$Contract)
-
+# We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classification model and that it showed predictive power in the models we studied. 
 ```
 
-Customer tenure for this month is clearly not normally distributed. It appears that relatively a large number of new customers have appeared over the last 5 months, but we have to remember that we have no data on customers who cancelled their service that joined any time in the last 5 years and 10 months.
-
-That is to say, the number of new customers telco signs every month may have been consistent over the last six years, but since we can only see 
-
-That being said, we expected the graph to show a negative linear pattern where the number of customers who have stayed with telco has steadily declined over the years... but that isn't the case. There are more customers that joined in the last 5 months than any other 5 month interval in the data, but it appears to level out after about 25 months and then rises again after 5 years. 
-
-
-
-The histogram of the tenure data seems to indicate a large amount of newer customers relative to the number of customers that have long-running accounts. But it's hard to say if this is a recent trend or caused by the ongoing churn that the company is interesting in predicting. 
-
-```{r}
-#TODO: so cool. lets see if we can flip it.
-ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn))
-# try stacked v. not-stacked...
-ggplot(data=telco)+geom_bar(aes(x=tenure, fill=Churn),position='dodge')
-```
-
-The tenure histogram showing Churn Yes/No vs. the amount of tenure a customer has, shows the trend we pretty much expected. We can see that a core of long-term customers seems to stick around..... 
-
-It appears that most customers who churn do it early.
-
-The tiny bar represents customers who haven't been with the company for a full month yet, 
-we aren't sure why it's so much smaller than everything else. It makes sense that none of these customers have churned because they technically haven't been billed yet, this might be a hiccup in the data, maybe this analysis was done early in the month and they included 
-a handful of new contracts that month. 
-
-TODO: More here #### EDITED, I CHECKED IT OUT
-Important: Are we looking at stacked bars or total frequencies (from sean) It's stacked. :) 
-Dumber Note: This is not total custermers 40 months ago.... total customers at month 0 is sum of all customers that haven't churned.... careful when writing this up.
 
 #### Monthly Charges
 
 ```{r}
+hist(telco$MonthlyCharges)# not normal
+hist(telco_no$MonthlyCharges)# not normal
+hist(telco_yes$MonthlyCharges)# not normal 
+skewness(telco$MonthlyCharges)# skewed slightly left
+skewness(telco_no$MonthlyCharges) # skewed slighly less left
+skewness(telco_yes$MonthlyCharges) # fairly skewed to the left, but abs (-.7282035) is < 1. 
 
-### all we need to cahnge here is essentially label the plot 
-# we can't use anova bc of what I just showed here... 
-hist(telco$MonthlyCharges)
-# this data is bimodal.... and slightly skewed but our sample size is large, 
-# so we think
-hist(telco_no$MonthlyCharges)
-hist(telco_yes$MonthlyCharges)
-# definitely not normal. 
-boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)', main='Monthly Charges by Churn')
-# this was funny... but no
-ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn))
-# definitely skewed to the right. 
-hist(telco_yes$MonthlyCharges)
-# what we learned is that the customers who ARE churning are definitely paying more money
-
-# can we do anova here? I'd like too, but have to ask the dependent v. indpendent 
-# variable question, besides we have many more customers who have churned. 
-# which means... 
-qqnorm(telco$MonthlyCharges)
-qqline(telco$MonthlyCharges)
-
-
-
-
-# this means we CANNOT use anova, unfortunately. OUr groupmeans are not normal 
-#moncaov = aov(MonthlyCharges~Churn,data = telco)
-#leveneTest(moncaov)
+qqnorm(telco$MonthlyCharges) 
+qqline(telco$MonthlyCharges)# again, the data is definitely not normal. 
 
 
 charge_box<-ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
   geom_boxplot()
-
 charge_box
 
+# Customers who churned appear to have higher monthly charges, but more interestingly, the IQR of the boxplot for the customers who churned is much tighter, meaning the middle 50% of the customers who churned are definitely paying more than the customers who did not churn. 
+
+sd(telco_no$MonthlyCharges)
+sd(telco_yes$MonthlyCharges)
+# sd's are different. 
+leveneTest(MonthlyCharges~Churn,data=telco)
+# Reject H0, so our group varainces are definitely different, use Welch's test. 
+
+
+## MonthlyCharges doesn't appear to be normally distrubted but since the sample size of each grouping of MonghlyCharges, n1 (Churn = Yes) and n2 (Churn = no), are large, (n1 = 1869 &  n2 5174, respectively) is much higher than 30 and the overall skewness of tenure (-.2204305) is .significantly less than 1, we beleive that we should be able to use a t-test to determine if there is a significant difference between the mean tenures of customers who did and did not churn. 
+
+# code our T test.
 t.test(telco_yes$MonthlyCharges,telco_no$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
-dim(nos)
-t.test(yess$MonthlyCharges,nos$MonthlyCharges,alternative = "two.sided",var.equal = FALSE)
 
-wilcox.test(MonthlyCharges~Churn,data=yn_sam)
+# Since our p-value is much less than .05, we reject H0, the mean tenure of telecom customers who churned (for this company) is different than the mean tenure of the telecom customers who did not churn at the alpha = .05 level of significance. 
 
-```
-
-This seems to show a general trend of Customers paying more, being more likely to Churn, though there is a lot of variation in MonthlyCharges for Customers that didn't churn, so it may not be a very statistically relevant trend 
-TODO: More here
-
-#### Total Charges
-
-```{r}
-# we can really only look at either monthly charges or total charges when trying to 
-# predict Churn, and well... we can't really use one to predict the other bc they are 
-# DEFINITELY correlated. 
-
-# we might as well just use 
-hist(telco$TotalCharges)
-plot(telco$TotalCharges,telco$tenure)
-# everyone who is staying longer is going to generally have higher charges 
-# simply bc they are charged MORE times..... 
-
-# interestingly, these are closer than we expected, unfortunately we can't run a t-test because our numeric data isn't normal. 
-#tcharge_box<-ggplot(telco, aes(x=Churn, y=TotalCharges, color=Churn)) +
-#  geom_boxplot()
-#tcharge_box
-
-#ggplot(data=telco)+geom_histogram(aes(x=TotalCharges, fill=Churn))
-# distribution isn't EXACTLY the same... customers who do churn does have a bit more of an extreme dropoff... but it's similar. 
-#ggplot(data=telco_yes)+geom_histogram(aes(x=TotalCharges),fill='blue')+geom_text()
-
-#ggplot(data=telco_no)+geom_histogram(aes(x=TotalCharges),fill='red') 
-
+# We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classification model and that it showed predictive power in the models we studied. 
 
 ```
 
-NOT GONNA DELETE THIS BELOW,  BUT NOW THAT WE HAVE THE HISTOGRAMs BROKEN BY CHURN WHICH SHOWS ESSENTIALLY THE SAME DISTRIBUTION FOR BOTH VALUES I'M COMMENTING IT OUT AND REPLACING IT WITH THIS. 
-
-The distributions aren't identical, but they are similar. (They are both skewed right but it's more skewed right for customers who churned)
-The histogram of total charges seems to makes sense against the trend we saw before with tenure that indicates the majority of the customers we have in the database recently started with the company (~ <5 months tenure). 
-
-Appears that people who have Churned has spend a little bit less overall, however we did expect a bigger difference in overall spending.
-
-### Descriptive Statistics and Graphical Representations - Categorical Data
 
 ```{r}
-
-factors <- unlist(lapply(telco, is.factor))
-table(telco$Churn)
-table(telco$Churn)[2]/table(telco$Churn)[1]
-```
-
-The Churn Rate is 36.122 %
-Also, note we decided not to 
-TODOS:
- - Table/Graphics for remaining categorical data
-```{r}
-# ask brian if I should list the realtive frequencies of everything and talk about them in the report? seems kind of agains the point 
-```
- 
-> iii. Measures of Variance
-
-# TODO: may be above... look at summary stats from boxplot stuff above... 
-
-> iv. Initial correlation
-
-# TODO: only applies to numberic data (between total/monthly/tenure)
-# TODO: build corrplot and discuss
-
-> b. Select and develop an appropriate model (Chi-square/ANOVA/Regression) to
-> address your research question allowing you to either accept or reject the null
-> hypothesis. This should include, as appropriate, model evaluation techniques. 
-
-#TODO run chi-squared as appropriate for research question. 
-
-```{r}
-
+###### Chisq Test. 
   yr = telco[which(telco$Contract=="One year"|telco$Contract=="Two year"),]
   yrc = yr[yr$Churn == "Yes",]
   unique(yrc$tenure)
   hist(yrc$tenure, xlab = "Tenure in Months", main = "Tenure of annual and bi-annual Churners",breaks = c(0:72)*1 )
-  max(telco$tenure)
-  dim(yrc)
-  dim(telco_no)
   
   monthly = telco[which(telco$Contract!="One year"&telco$Contract!="Two year"),]
   unique(monthly$Contract)
   unique(monthly$tenure)
-  
   
   contract_tab = table(telco$Contract,telco$Churn)
   contract_test = chisq.test(contract_tab)
