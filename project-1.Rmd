@@ -427,8 +427,9 @@ hist(chrn_yes$tenure)
 hist(chrn_no$tenure)
 # not surprisingly, the mean tenure of the customers who churned is 1/2 the tenure of customers 
 # who didn't churn, 
-
+str(telco)
 t.test(chrn_yes$tenure,chrn_no$tenure,alternative = "two.sided",var.equal = FALSE)
+
 # Since our p-value is much less than .05, we reject H0, the mean tenure of telecom customers who churned (for this company) is different than the mean tenure of the telecom customers who did not churn at the alpha = .05 level of significance. 
 
 # We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classificatio model and that it showed predictive power in the models we studied. 
@@ -617,17 +618,22 @@ TODOS:
   yr = telco[which(telco$Contract=="One year"|telco$Contract=="Two year"),]
   yrc = yr[yr$Churn == "Yes",]
   unique(yrc$tenure)
-  hist(yrc$tenure)
+  hist(yrc$tenure, xlab = "Tenure in Months", main = "Tenure of annual and bi-annual Churners",breaks = c(0:72)*1 )
+  max(telco$tenure)
   dim(yrc)
+  72/12
   dim(chrn_no)
   
   monthly = telco[which(telco$Contract!="One year"&telco$Contract!="Two year"),]
   unique(monthly$Contract)
   unique(monthly$tenure)
   
-  hist(monthly$tenure)
-  hist(monthly$MonthlyCharges)
-  shapiro.test(monthly$tenure)
+  
+  contract_tab = table(telco$Contract,telco$Churn)
+  contract_test = chisq.test(contract_tab)
+  contract_test
+  contract_test$observed
+  contract_test$expected
   
 ```
 
