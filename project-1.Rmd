@@ -2,7 +2,9 @@
 title: "project1"
 author: "zbuckley, pedrouria, seanpili"
 date: "October 13, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -203,20 +205,20 @@ str(telco.num)
 
 We'll probably need to impute the values in TotalCharges again, but lets double check. 
 
-```{r}
+```{r e}
 aggr_plot <- aggr(telco.num, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
 ```
 
 As expected, the only values missing are still in the totalCharges column, let's use mice to impute the values as before, and build the corplot.
 
-```{r}
+```{r b}
 telco.num.imputed <- complete(mice(data = telco.num))
 aggr_plot <- aggr(telco.num.imputed, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
 ```
 
 Alright... now for the corrplot:
 
-```{r}
+```{r a}
 # corplot of numeric variables
 M <- cor(telco.num.imputed)
 corrplot(M, method='ellipse')
@@ -245,21 +247,21 @@ Churn indicates whether a given customer has decided to leave the company this m
 
 How many of the customers churned in the given month:
 
-```{r}
+```{r c}
 ggplot(data=telco)+geom_bar(aes(x=Churn))
 
 # calculate percentage churn
-t <- table(telco$Churn)
+t <- table(telco[,'Churn'])
 t[[2]]/(t[[1]]+t[[2]])
 ```
 
-From the graph we can see that the majority of customers aren't churning, but at the same time we've illustrated why the Churn factors are important to telecom companies. $26%$ of their **total** customers are churning in the given month.
+From the graph we can see that the majority of customers aren't churning, but at the same time we've illustrated why the Churn factors are important to telecom companies. $26\%$ of their **total** customers are churning in the given month.
 
 Let's dig into other variables more, to try and understand what causes this.
 
 An interesting question from here would be whether the customers that are churning are customers that have been with the company for a long time, or more customers that have just recently picked up subscriptions:
 
-```{r}
+```{r d}
 boxplot(tenure~Churn, data = telco)
 ```
 
@@ -433,16 +435,70 @@ cten_box
 TODO: Incorporate the boxplot into discussions
 
 ### Online Security
-TODO
+
+Online Security is a categorical variable (3 levels), that indicates whether the customer has subscribed to the company's online security, has no internet service, or hasn't subscribed.
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=OnlineSecurity))
+ggplot(data=telco)+geom_bar(aes(x=OnlineSecurity, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=OnlineSecurity))
+```
+
+Online Security shows an interesting relationship with Churn, as it appears that counter to our initial guess, those customers without internet service are less likely to churn. There visually appears that the majority of churning customers elect not to have online security. 
+
+```{r}
+count(telco %>% filter(OnlineSecurity == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see, ~78% of the customers that churned did not have OnlineSecurity.
 
 ### Tech Support
-TODO
+
+Tech support is a categorical variable (3 levels) that indicates whether a customer has subscribed to the company's technical support service, has no internet access, or has opted out of the technical support service.
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=TechSupport))
+ggplot(data=telco)+geom_bar(aes(x=TechSupport, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=TechSupport))
+```
+
+The relationship between Tech Support Churn does appear to visually be significant.. in that the majority of customers that churned appear to opted out of the company's Tech Support services.
+
+```{r}
+count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~77% of the customers that churned this month, had opted out of the company's tech support services.
 
 ### Online Backup
-TODO
+
+Online Backup is a categorical variable (3 levels), indicating whether a customer has subscribed to the company's online backup services, has no internet service, or has opted out.
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=OnlineBackup))
+ggplot(data=telco)+geom_bar(aes(x=OnlineBackup, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=OnlineBackup))
+```
+
+We see here a similar trend to that found with Tech Support and Online Security related to Churn, in that visually it appears that the majority of customers who churned in the previous month had opted out of the service. 
+
+```{r}
+count(telco %>% filter(OnlineBackup == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+```
+
+As we can see ~66% of the customers that churned this month, had opted out of the company's online backup services.
 
 ### Paperless Billing
-TODO
+
+Paperless Billing is a categorical variable (2 levels), indicating whether a customer is using Paperless Billing, or not. 
+
+```{r}
+ggplot(data=telco)+geom_bar(aes(x=PaperlessBilling))
+ggplot(data=telco)+geom_bar(aes(x=PaperlessBilling, fill=Churn))
+ggplot(data=telco)+geom_bar(aes(x=Churn, fill=PaperlessBilling))
+```
+
+Our guess was that the 
 
 ### Monthly Charges
 
@@ -649,7 +705,7 @@ boxplot(MonthlyCharges~Churn, data=telco, xlab='Churn', ylab='Monthly Charges($)
 ggplot(data=telco)+geom_bar(aes(x=MonthlyCharges, fill=Churn))
 # definitely skewed to the right. 
 hist(telco_yes$MonthlyCharges)
-# what we learned is that the customers who ARE churning are definitely paying more $$
+# what we learned is that the customers who ARE churning are definitely paying more money
 
 # can we do anova here? I'd like too, but have to ask the dependent v. indpendent 
 # variable question, besides we have many more customers who have churned. 
@@ -678,7 +734,7 @@ wilcox.test(MonthlyCharges~Churn,data=yn_sam)
 
 ```
 
-This seems to show a general trend of Customers paying more, being more likely to Churn, though there is a lot of variation in MonthlyCharges for Customers that didn't churn, so it may not be a very statistically relevant trend....... 
+This seems to show a general trend of Customers paying more, being more likely to Churn, though there is a lot of variation in MonthlyCharges for Customers that didn't churn, so it may not be a very statistically relevant trend 
 TODO: More here
 
 #### Total Charges
@@ -708,10 +764,10 @@ plot(telco$TotalCharges,telco$tenure)
 
 ```
 
-NOT GONNA DELETE THIS BELOW,  BUT NOW THAT WE HAVE THE HISTOGRAMs BROKEN BY CHURN WHICH SHOWS ESSENTIALLY THE SAME DISTRIBUTION FOR BOTH VALUES..... I'M COMMENTING IT OUT AND REPLACING IT WITH THIS. 
+NOT GONNA DELETE THIS BELOW,  BUT NOW THAT WE HAVE THE HISTOGRAMs BROKEN BY CHURN WHICH SHOWS ESSENTIALLY THE SAME DISTRIBUTION FOR BOTH VALUES I'M COMMENTING IT OUT AND REPLACING IT WITH THIS. 
 
 The distributions aren't identical, but they are similar. (They are both skewed right but it's more skewed right for customers who churned)
-#The histogram of total charges seems to makes sense against the trend we saw before with tenure that indicates the majority of the customers we have in the database recently started with the company (~ <5 months tenure). 
+The histogram of total charges seems to makes sense against the trend we saw before with tenure that indicates the majority of the customers we have in the database recently started with the company (~ <5 months tenure). 
 
 Appears that people who have Churned has spend a little bit less overall, however we did expect a bigger difference in overall spending.
 
