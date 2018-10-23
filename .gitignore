@@ -262,3 +262,5 @@ TSWLatexianTemp*
 # standalone packages
 *.sta
 *project-1_files/
+*project-1.pdf
+*tmp-pdfcrop-8688.tex
