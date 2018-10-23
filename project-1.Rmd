@@ -431,7 +431,7 @@ We can clearly see from this plot why the corplot above called out TotalCharges 
 
 ```{r}
 cten_box<-ggplot(telco, aes(x=Churn, y=tenure, color=Churn)) +
-  geom_boxplot()
+  geom_boxplot() + ylab("Tenure (months)")
 cten_box
 ```
 
