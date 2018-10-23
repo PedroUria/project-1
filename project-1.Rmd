@@ -514,7 +514,7 @@ As we can see ~75% of the customers that churned this month, had opted into of t
 Let's check for normality through the histogram and qqplots. 
 
 ```{r}
-hist(telco$MonthlyCharges)
+hist(telco$MonthlyCharges, main = "Monthly Charges Histogram", xlab = "Monthly Charges ($)", ylab = "Count")
 qqnorm(telco$MonthlyCharges)
 qqline(telco$MonthlyCharges)
 ```
@@ -541,7 +541,7 @@ This means ANOVA will not work for comparing variance between the filtered obser
 
 ```{r}
 ggplot(telco, aes(x=Churn, y=MonthlyCharges, color=Churn)) +
-  geom_boxplot()
+  ylab("Monthly Charges ($)") + geom_boxplot() 
 ```
 
 There does visually appear to be a decent amount of variation between the Churning an non-Churning monthly charge values. But it's hard to say if it is a statistically significant trend in this case.
@@ -779,7 +779,7 @@ mean(telco_no$tenure)
 skewness(telco$tenure)
 skewness(telco_no$tenure)
 skewness(telco_yes$tenure)
-hist(telco$tenure)# not normal
+hist(telco$tenure, ylab = "count", xlab = "Tenure (months)", main = "Tenure Histogram")# not normal
 hist(telco_no$tenure) # not normal 
 hist(telco_yes$tenure)# not normal and definitely skewed right, 
 # but our sample contains 1869 observations, so we think we will 
