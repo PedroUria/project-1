@@ -66,12 +66,12 @@ H_0: \texttt{Churn} \hspace{1mm} \text{and}  \hspace{1mm} \texttt{ContractType} 
 H_1: \texttt{Churn} \hspace{1mm} \text{and} \hspace{1mm} \texttt{ContractType} \hspace{1mm} \text{are not independent}
 \end{cases}$
 \item \texttt{MonthlyCharges} $\begin{cases}
-H_0: \overline{X}_{\text{Churn}} = \overline{X}_{\text{NotChurn}} \\
-H_1: \overline{X}_{\text{Churn}} \neq \overline{X}_{\text{NotChurn}}
+H_0: \mu_{\text{Churn}} = \mu_{\text{NotChurn}} \\
+H_1: \mu_{\text{Churn}} \neq \mu_{\text{NotChurn}}
 \end{cases}$ 
 \item \texttt{Tenure} $\begin{cases}
-H_0: \overline{X}_{\text{Churn}} \geq \overline{X}_{\text{NotChurn}} \\
-H_1: \overline{X}_{\text{Churn}} < \overline{X}_{\text{NotChurn}}
+H_0: \mu_{\text{Churn}} \geq \mu_{\text{NotChurn}} \\
+H_1: \mu_{\text{Churn}} < \mu_{\text{NotChurn}}
 \end{cases}$ 
 \end{itemize}
 
@@ -84,7 +84,7 @@ H_1: \overline{X}_{\text{Churn}} < \overline{X}_{\text{NotChurn}}
 \section{EDA and Model Results} 
 
 \paragraph{Contract Type}
-\texttt{ContractType} is a categorical value that can tells us whether a customer has a monthly, 1-year or 2-year contract. 
+\texttt{ContractType} is a categorical value that tells us whether a customer has a monthly, 1-year or 2-year contract. 
 
 \hspace{0.5mm}
 
@@ -101,8 +101,6 @@ This can be done by running a $\chi^2$-test in R, which returns $\chi^2 = 1184.6
 
 \textbf{TALK ABOUT TENURE HISTOGRAM}
 
-\textbf{CHANGE TWO-TAIL TO ONE-TAIL}
-
 \paragraph{Billing}
 
 In this section we first did \textit{EDA} on \texttt{MonthlyCharges}, a continuous variable that gives the amount of dollars charged to a customer each month (thus, in this case we shall not use a $\chi^2$-test, which only makes sense for categorical data). The goal was to have a first look at how this variable behaved for customers who churned and for customers who did not churn, in order to asses which statistical test to use to check our alternate hypothesis. 
@@ -113,7 +111,7 @@ In this section we first did \textit{EDA} on \texttt{MonthlyCharges}, a continuo
 \includegraphics[width = \linewidth, height = 64mm]{boxplot_MonthlyChargesvsChurn}
 \end{minipage}
 \hfill
-\begin{minipage}{0.43\textwidth} On the left there is a boxplot for \texttt{MonthlyCharges}, grouped by \texttt{Churn}. We can see how the variances are clearly different, and because of this we can't use a Student's $t$-test to tell whether $\overline{X}_{\text{Churn}} = \overline{X}_{\text{NotChurn}}$ or not. Instead, we will use a Welch's $t$-test, which does not assume equality of variances. 
+\begin{minipage}{0.43\textwidth} On the left there is a boxplot for \texttt{MonthlyCharges}, grouped by \texttt{Churn}. We can see how the variances are clearly different, and because of this we can't use a Student's $t$-test to tell whether $\mu_{\text{Churn}} = \mu_{\text{NotChurn}}$ or not. Instead, we will use a Welch's $t$-test, which does not assume equality of variances. 
 \end{minipage}
 
 
@@ -126,8 +124,7 @@ In this section we first did \textit{EDA} on \texttt{MonthlyCharges}, a continuo
 
 \hspace{0.5mm}
 
-Upon running this test on R, we get a $p$-value $< 2.2 \cdot 10^{-16}$, so we reject $H_0$ and say that the two means are statistically different at the $\alpha = 0.05$ level of significance. In particular, it seems that customers who churned are paying more on average that customers who have not churned.
-
+By looking at the boxplot we also realize that the mean of monthly charges for customers who churned appears to be greater than that of the customers who have not churned. Thus, we modify our original hypothesis to $H_0: \mu_{\text{Churn}} \leq \mu_{\text{NotChurn}}$ and $H_1: \mu_{\text{Churn}} > \mu_{\text{NotChurn}}$. Upon running this test (one-tailed) on R, we get a $p$-value $< 2.2 \cdot 10^{-16}$, so we reject $H_0$ and say that the data is statistically significant  at the $\alpha = 0.05$ level to conclude that customers who churned are paying more on average that customers who have not churned,
 \paragraph{Tenure}
 
 The process for \texttt{Tenure} was analogous to the one for \texttt{MonthlyCharges}, as this continuous variable presented similar differences in variance and is also non-normally shaped. 
@@ -144,7 +141,7 @@ The process for \texttt{Tenure} was analogous to the one for \texttt{MonthlyChar
 
 \hspace{0.5mm}
 
-In this case, we also get a very small $p$-value (again $< 2.2 \cdot 10^{-16}$), so we reject the null hypothesis that  $\overline{X}_{\text{Churn}} - \overline{X}_{\text{NotChurn}} = 0$ and say that at the $5 \%$ significance level, $\overline{X}_{\text{Churn}} \neq \overline{X}_{\text{NotChurn}}$. Customers who haven't churned have been longer on average with the company. 
+In this case, we also get a very small $p$-value (again $< 2.2 \cdot 10^{-16}$), so we reject the null hypothesis that  $H_0: \mu_{\text{Churn}} \geq \mu{X}_{\text{NotChurn}}$ and say that at the $5 \%$ significance level, customers who haven't churned have been longer on average with the company. 
 
 
 \section{Conclusions}
