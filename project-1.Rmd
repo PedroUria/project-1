@@ -82,8 +82,8 @@ Is a customer's decision to Churn independent of the type of contract a customer
 ## Alternative Hypotheses
 
 1. Customer's Decision to Churn and the type of contract a customer holds are not independent.
-2. There is a significant difference in the mean tenure for Customers who decided to Churn, and those who did not decide to Churn. $\mu_{Churned}-\mu_{Not Churned}\neq0$
-3. There is a significant difference in the mean monthly charges for Customers who decided to Churn, and those who did no decide to Churn. $\mu_{Churned}-\mu_{Not Churned}\neq0$
+2. The mean tenure for Customers who decided to Churn is less than the mean tenure of and those who did not decide to Churn. $\mu_{Churned}-\mu_{Not Churned}\ <0$
+3. The mean monthly charges for Customers who decided to Churn is greater than the mean monthly charges of the customers who did not decide to Churn. $\mu_{Churned}-\mu_{Not Churned}\ >0$
 
 # Conducting Exploratory Data Analysis
 
@@ -865,8 +865,8 @@ Of course, what we cannot see, is the number of months every user with an one/tw
 
 Through our hypothesis tests, we were able to validate that there are statistically significant relationships between Churn and the Contract Type a customer holds, their Monthly Charges and their Tenure. 
 
-More specifically, we found that Churn is not independent of contract type, the sample mean tenure of customers who churned is less than the sample mean tenure of customers who did not churn and the sampe mean monthly charges incurred by the customers who churned is higher than the sample mean monthly charges incurred by the customers who churned. 
+More specifically, we found that Churn is not independent of contract type, the mean tenure of customers who churned is less than the mean tenure of customers who did not churn and the mean monthly charges incurred by the customers who churned is higher than the mean monthly charges incurred by the customers who churned. 
 
-This means that customers with different levels commitment to a company have different probabilties of churning, customers who have longer tenures with a company are less likely to churn, on average, and customers who have larger bills are more likely to churn, on average. 
+This means that customers with different levels commitment to a company have different probabilties of churning, customers who have longer tenures with a company are less likely to churn, on average, and customers who have larger monthly bills are more likely to churn, on average. 
 
 We are interested in seeing how well the three aforementioned varaibles would be able predict churn in a logistic regression model. 
