@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(include = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ##Helper Functions here for cleanly handling imports
 #install_all - function for installing all packages in a list that aren't available
 #  inspired by https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
@@ -54,11 +54,11 @@ telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
   # Change all character-type variables to factor variables
   # Implementation Inspired by:
   #   https://stackoverflow.com/questions/27668266/dplyr-change-many-data-types
-  #   https://gist.github.com/ramhiser/93fe37be439c480dc26c4bed8aab03dd#file-character2factor-r-L8 
+  #   https://bit.ly/2qeo4me  
   mutate_if(sapply(., is.character), as.factor) %>%
   mutate(
-    # Senior Citizen is coded numerically (0,1), and indicates if someone is a senior citizen, 
-    # so we switched it's type to factor, and labelled it accordingly.
+    # Senior Citizen is coded numerically (0,1), and indicates if someone is 
+    # a senior citizen, so we switched it's type to factor, and labelled it accordingly.
     SeniorCitizen = factor(SeniorCitizen, labels = c('No', 'Yes')),
     # CustomerID was converted to factor by the blanket mutate_if above, 
     # but has too many levels to be a factor variable, so we'll convert it 
@@ -123,7 +123,9 @@ The corrplot of tenure, MonthlyCharges and TotalCharges, shows that there may be
 
 ```{r}
 # https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
-aggr_plot <- aggr(telcon, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+aggr_plot <- aggr(telcon, col=c('navyblue','red'), numbers=TRUE,
+                  sortVars=TRUE, labels=names(data), cex.axis=.7, 
+                  gap=3, ylab=c("Histogram of missing data","Pattern"))
 ```
 
 So we can see that the missing values are restricted to TotalCharges, and aren't exceptionally dense. Let's impute the values using mice, and recompute the corrplot. 
@@ -135,7 +137,9 @@ So we can see that the missing values are restricted to TotalCharges, and aren't
 telcon.imputed <- complete(mice(data = telcon))
 
 # recompute aggr_plot
-aggr_plot.imputed <- aggr(telcon.imputed, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+aggr_plot.imputed <- aggr(telcon.imputed, col=c('navyblue','red'), numbers=TRUE,
+                          sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3,
+                          ylab=c("Histogram of missing data","Pattern"))
 ```
 
 Excellent. telcon.imputed has no missing values. 
@@ -169,7 +173,8 @@ telco.computedCharges <- telco %>%
     computedCharges = tenure*MonthlyCharges
   )
 plot(x=telco.computedCharges$computedCharges, y=telco.computedCharges$TotalCharges, 
-     xlab = "Computed Charges", ylab = "Total Charges", main = "Total vs Computed Charges")
+     xlab = "Computed Charges", ylab = "Total Charges", 
+     main = "Total vs Computed Charges")
 abline(0,1,col = 'Red', lwd=3)
 ```
 
@@ -345,7 +350,8 @@ hist(telco_yes$tenure)
 It appears that more of the Churning behavior is occuring in the most recently added customers.  
 
 ```{r}
-# Check the percentage of churned customers who started their subscriptions within the last 10 months in the dataset. 
+# Check the percentage of churned customers who started their subscriptions
+# within the last 10 months in the dataset. 
 telco_yes_less <- telco_yes %>% filter(tenure <= 10)
 nrow(telco_yes_less)/nrow(telco_yes)
 ```
@@ -428,7 +434,8 @@ Again, we beleive that customers are churning independently of each other and th
 Let's check for normality through the histogram and qqplots. 
 
 ```{r}
-hist(telco$MonthlyCharges, main = "Monthly Charges Histogram", xlab = "Monthly Charges ($)", ylab = "Count")
+hist(telco$MonthlyCharges, main = "Monthly Charges Histogram",
+     xlab = "Monthly Charges ($)", ylab = "Count")
 qqnorm(telco$MonthlyCharges)
 qqline(telco$MonthlyCharges)
 ```
@@ -455,9 +462,11 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=OnlineSecurity))
 Online Security shows an interesting relationship with Churn, as it appears that counter to our initial guess, those customers without internet service are less likely to churn. There visually appears that the majority of churning customers elect not to have online security. 
 
 ```{r}
-count(telco %>% filter(OnlineSecurity == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes",OnlineSecurity !="No internet service"))
+count(telco %>% filter(OnlineSecurity == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes",OnlineSecurity !="No internet service"))
 
-count(telco %>% filter(OnlineSecurity == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(OnlineSecurity == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see, ~83% of the customers with internet service that churned did not have OnlineSecurity, ( ~78% overall.) 
@@ -475,9 +484,11 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=TechSupport))
 The relationship between Tech Support Churn does appear to visually be significant.. in that the majority of customers that churned appear to opted out of the company's Tech Support services.
 
 ```{r}
-count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes", TechSupport != "No internet service"))
+count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes", TechSupport != "No internet service"))
 
-count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~82% of the customers with internet service that churned this month, had opted out of the company's tech support services (~77% overall.)
@@ -495,9 +506,11 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=OnlineBackup))
 We see here a similar trend to that found with Tech Support and Online Security related to Churn, in that visually it appears that the majority of customers who churned in the previous month had opted out of the service. 
 
 ```{r}
-count(telco %>% filter(OnlineBackup == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes", OnlineBackup != "No internet service"))
+count(telco %>% filter(OnlineBackup == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes", OnlineBackup != "No internet service"))
 
-count(telco %>% filter(OnlineBackup == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(OnlineBackup == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~70% of the customers with internet service that churned this month, had opted out of the company's online backup services (~66% overall.)
@@ -515,7 +528,8 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=PaperlessBilling))
 There is still a trend here in that customers with paperless billing appear to be more likely to churn. 
 
 ```{r}
-count(telco %>% filter(PaperlessBilling == "Yes", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(PaperlessBilling == "Yes", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~75% of the customers that churned this month, had opted into of the company's paperless billing option.
@@ -534,9 +548,11 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=DeviceProtection))
 Visually we can tell that most of the customer's that are churning have opted out of the company's device protection plan. 
 
 ```{r}
-count(telco %>% filter(DeviceProtection == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes", DeviceProtection != "No internet service"))
+count(telco %>% filter(DeviceProtection == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes", DeviceProtection != "No internet service"))
 
-count(telco %>% filter(DeviceProtection == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(DeviceProtection == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~69% of the customers with internet service that churned this month, had opted out of the company's device protection plan (~65% overall.)
@@ -554,7 +570,8 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=Dependents))
 Visually, we can see that the majority of customers that churned have no dependents.
 
 ```{r}
-count(telco %>% filter(Dependents == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(Dependents == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~82% of the customers that churned this month, have no dependents.
@@ -573,7 +590,8 @@ count(telco %>% filter(Partner == "Yes"))/count(telco)
 Interestingly ~48% of our sample customers have Partners, which appears to be the most evently distributed categorical variable we've seen yet. We continue to see a strong relationship between the variable and Churn.  
 
 ```{r}
-count(telco %>% filter(Partner == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(Partner == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~64% of the customers that churned this month were single.
@@ -591,7 +609,8 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=SeniorCitizen))
 There does appear to be a relationship between SeniorCitizen and Churn, though it isn't as pronounced as the previous visual trends were. 
 
 ```{r}
-count(telco %>% filter(SeniorCitizen == "No", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(SeniorCitizen == "No", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~75% of the customers that churned this month, are not senior citizens.
@@ -610,7 +629,8 @@ count(telco %>% filter(gender=="Male"))/count(telco)
 Gender appears to also be fairly evenly distributed with ~50.5% of the customers in our sample being Male. Visually there appears to be no relationship between the gender and Churn variables. 
 
 ```{r}
-count(telco %>% filter(gender == "Male", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(gender == "Male", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 Confirming our visual inspection, ~49.8% of churning customers are Male, since this is aligned with the population distribution, there is no statistically relevent trend between gender and Churn. 
@@ -628,7 +648,8 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=PhoneService))
 From the graph we see that the PhoneService categorical variable is skewed heavily toward having the service.  
 
 ```{r}
-count(telco %>% filter(PhoneService == "Yes", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(PhoneService == "Yes", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~91% of the customers that churned this month, have the company's phone service. We must be mindful here, that this may simply be reflecting the distribution of the Phone Service variable itself. 
@@ -666,7 +687,8 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=InternetService))
 There appears to be a relationship between the InternetService and Churn variables, as the majority of churning customers are using Fiber optic service. 
 
 ```{r}
-count(telco %>% filter(InternetService == "Fiber optic", Churn == "Yes"))/count(telco %>% filter(Churn == "Yes"))
+count(telco %>% filter(InternetService == "Fiber optic", Churn == "Yes"))/
+  count(telco %>% filter(Churn == "Yes"))
 ```
 
 As we can see ~70% of the customers that churned this month, were using the company's Fiber Optic internet service. 
@@ -684,7 +706,8 @@ ggplot(data=telco)+geom_bar(aes(x=Churn, fill=StreamingTV))
 There does appear to be a releationship here, though simply be a reflection of trends seen earlier, as the ratios between having StreamingTV and not having it don't seem to change when comparing a sample of only customers that churn versus a sample of only customers that aren't churning. The trend we do see, it that it appears that customers with No Internet Service are less likely to Churn.  
 
 ```{r}
-count(telco %>% filter(StreamingTV == "No internet service", Churn == "Yes"))/count(telco %>% filter(StreamingTV == "No internet service"))
+count(telco %>% filter(StreamingTV == "No internet service", Churn == "Yes"))/
+  count(telco %>% filter(StreamingTV == "No internet service"))
 ```
 
 Of those customers that have No internet service, only ~7% churned.
@@ -732,7 +755,8 @@ Normality
 skewness(telco$tenure)
 skewness(telco_no$tenure) 
 skewness(telco_yes$tenure)
-hist(telco$tenure, ylab = "count", xlab = "Tenure (months)", main = "Tenure Histogram")# not normal
+hist(telco$tenure, ylab = "count", xlab = "Tenure (months)", 
+     main = "Tenure Histogram")# not normal
 hist(telco_no$tenure) # not normal 
 hist(telco_yes$tenure)# not normal and definitely skewed right, 
 qqnorm(telco$tenure)
@@ -793,7 +817,8 @@ Sample std devs are not = and we reject H0 that the variances of each group are 
 
 Conduct our t-test for tenure. 
 ```{r}
-t.test(telco_yes$MonthlyCharges,telco_no$MonthlyCharges,alternative = "greater",var.equal = FALSE)
+t.test(telco_yes$MonthlyCharges,telco_no$MonthlyCharges,
+       alternative = "greater",var.equal = FALSE)
 ```
 Since our p-value is much less than .05, we reject H0, [the mean monthly charges of customers who churned is equal to the monthly charges of telecom customers who did not churn for this company] at the alpha = .05 level of significance and consider the alternative, the mean monthly charges of the customers who churned are greater than the mean monthly charges of the customers who did not churn.
 
@@ -808,7 +833,9 @@ yr = telco[which(telco$Contract=="One year"|telco$Contract=="Two year"),]
 yrc = yr[yr$Churn == "Yes",]
 unique(yrc$tenure)
 # make a separate bar for each month
-hist(yrc$tenure, xlab = "Tenure in Months", main = "Tenure of annual and bi-annual Churners",breaks = c(0:72)*1 )
+hist(yrc$tenure, xlab = "Tenure in Months",
+     main = "Tenure of annual and bi-annual Churners",
+     breaks = c(0:72)*1 )
 ```
 As we can see, there are people churing in every month.
 
