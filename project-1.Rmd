@@ -69,7 +69,7 @@ telco <- read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv',
 str(telco)
 ```
 
-# Original Research Question
+# Research Question
 
 Is a customer's decision to Churn independent of the type of contract a customer holds, the customer's tenure, and the customers monthly charges?
 
@@ -87,7 +87,7 @@ Is a customer's decision to Churn independent of the type of contract a customer
 
 # Conducting Exploratory Data Analysis
 
-## See "Literature-Focused EDA" for more comprehensive EDA on the variables in our research question relate to Churn.
+*See "Literature-Focused EDA" for more comprehensive EDA on how the variables in our research question relate to Churn.*
 
 > a. Conduct Exploratory Data Analysis that will begin to answer your question, this
 > can include for example:
@@ -98,7 +98,7 @@ Is a customer's decision to Churn independent of the type of contract a customer
 
 First, let's start with some general descriptive statistics and broad comparisons of the variables:
 
-### Continuous Variables
+### Numeric Variables
 
 ```{r}
 telcon <- telco %>% 
@@ -115,11 +115,11 @@ Interestingly, all of our numeric variables have a rather large standard deviati
 
 This makes sense though, because customers have different combinations  of services, leading to custom variations in each customers Monthly Charges. The longer customers stay with the company, the more the variations in Monthly Charges expand on the Variance in Total Charges. In fact, it's quite likely that the variance linearly increases as the tenure of customers increase. 
 
-Tenure should probably a have high standard deviation because our data only contains the records of customers who haven't churned, which we beleive explains the right skewed-ness we see represented by the describe output. 
+Tenure should probably have a high standard deviation because our data only contains the records of customers who haven't churned, which we beleive explains the right skewed-ness we see represented by the `describe` output. 
 
-MonthlyCharges and Tenure are both slightly left and right skewed, respectively, whereas TotalCharges is very right skewed as we mentioned earlier. 
+MonthlyCharges and Tenure are skewed slightly left and right respectively, whereas TotalCharges is heavily right skewed as we mentioned earlier. 
 
-The corrplot of tenure, MonthlyCharges and TotalCharges, shows that there may be a weak, positive linear relationship between tenure and MonthlyCharges. The '?'s indicate that there are missing TotalCharges values. Let's see if we can impute the missing values and try building the corrplot again. First, we'll need a better understanding of where the missing values are, as it will inform our imputation method. 
+The corrplot of tenure, MonthlyCharges and TotalCharges, shows that there may be a weak, positive linear relationship between tenure and MonthlyCharges. The `?`s indicate that there are missing TotalCharge values. Let's see if we can impute the missing values and try building the corrplot again. First, we'll need a better understanding of where the missing values are, as it will inform our imputation method. 
 
 ```{r}
 # https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
