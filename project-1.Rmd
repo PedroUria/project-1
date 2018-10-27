@@ -869,4 +869,4 @@ More specifically, we found that Churn is not independent of contract type, the 
 
 This means that customers with different levels commitment to a company have different probabilties of churning, customers who have longer tenures with a company are less likely to churn, on average, and customers who have larger monthly bills are more likely to churn, on average. 
 
-We are interested in seeing how well the three aforementioned varaibles would be able predict churn in a logistic regression model. 
+We are interested in seeing how well the three aforementioned variables would be able predict churn in a logistic regression model. 
