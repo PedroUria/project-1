@@ -199,11 +199,6 @@ corrplot(M, method = "ellipse")
 ```
 
 
-## Individual Variables
-
-Now we'll dig through individual variables and explore how they relate to Churn, starting with the variables in our research question. 
-
-
 ##Literature-Focused EDA
 
 First, let's create dataframes for customers who have and have not churned as we will be splitting the data often in our EDA.
@@ -492,6 +487,10 @@ count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/
 ```
 
 As we can see ~82% of the customers with internet service that churned this month, had opted out of the company's tech support services (~77% overall.)
+
+## Individual Variables
+
+Now we'll dig through individual variables and explore how they relate to Churn, starting with the variables in our research question. 
 
 ### Online Backup
 
