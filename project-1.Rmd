@@ -162,7 +162,7 @@ plot(telco$tenure,telco$TotalCharges,
      xlab = "tenure")
 ```
 
-We can clearly see from this plot why the corplot above called out TotalCharges and tenure as being related. Visually, you see the lower and upper bounding of the monthly charges a customer of the company gets. Most likely due to the variety of service configuration options being offered (which makes us beleive that maybe the relationship isn't quite linear)
+We can clearly see from this plot why the corplot above called out TotalCharges and tenure as being related. Visually, you see the lower and upper bounding of the monthly charges a customer of the company gets. Most likely due to the variety of service configuration options being offered (which makes us believe that maybe the relationship isn't quite linear)
 
 A simple approximation of TotalCharges should be (${TotalCharges}={tenure}*{MonthlyCharges}$), but it is only an approximation because we can't assume that the customers monthly charges stay constant over time. We have to remember we're looking at these values at a given snapshot in time.
 
@@ -444,6 +444,10 @@ hist(telco_yes$MonthlyCharges)
 ```
 It's hard to interperet the stacked histogram, but the separate histograms show that most of their customers paid relatively high charges this month. The customers who did not churn has a more even spread of monthly charges, but there appear to be many more customers with relatively low monthly charges in this group. 
 
+## Individual Variables
+
+Now we'll dig through individual variables and explore how they relate to Churn, starting with the variables in our research question. 
+
 ### Online Security
 
 Online Security is a categorical variable (3 levels), that indicates whether the customer has subscribed to the company's online security, has no internet service, or hasn't subscribed.
@@ -487,10 +491,6 @@ count(telco %>% filter(TechSupport == "No", Churn == "Yes"))/
 ```
 
 As we can see ~82% of the customers with internet service that churned this month, had opted out of the company's tech support services (~77% overall.)
-
-## Individual Variables
-
-Now we'll dig through individual variables and explore how they relate to Churn, starting with the variables in our research question. 
 
 ### Online Backup
 
@@ -821,7 +821,7 @@ t.test(telco_yes$MonthlyCharges,telco_no$MonthlyCharges,
 ```
 Since our p-value is much less than .05, we reject H0, [the mean monthly charges of customers who churned is equal to the monthly charges of telecom customers who did not churn for this company] at the alpha = .05 level of significance and consider the alternative, the mean monthly charges of the customers who churned are greater than the mean monthly charges of the customers who did not churn.
 
-We now have reason to beleive that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classification model.
+We now have reason to believe that there is a relationship between whether a customer churns and their tenure, on average. Therefore it makes sense that researchers studying churn rates typically include a customer's tenure in a logistic regression or classification model.
 
 ## Chisq Test for Contract Type and Churn
 
